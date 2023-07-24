@@ -1,16 +1,19 @@
-import converter
 import json
 import pg8000.native as pg8000
 from pprint import pprint
 import boto3
 
-from os import system
-
 
 def get_credentials():
     """
-        Will return a dictionary containing
-        our credentials (as defined in converter.py)
+        Loads our DB credentials using AWS secrets
+        Returns: 
+            a credentials dictionary containing:
+            - username
+            - password
+            - hostname
+            - db
+            - port
     """
 
     secretsmanager = boto3.client('secretsmanager')
