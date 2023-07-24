@@ -37,10 +37,6 @@ def get_credentials():
 
 
 def connect():
-    """
-        Will return a connection to the ingestion database
-    """
-
     credentials = get_credentials()
 
     return pg8000.Connection(
@@ -88,4 +84,3 @@ if __name__ == '__main__':
                 and saved to {csv_file_path}''')
             else:
                 print(f"Failed to extract data for {table_name}")
-
