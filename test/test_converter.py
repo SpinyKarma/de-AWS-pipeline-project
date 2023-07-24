@@ -2,22 +2,31 @@ import pytest
 import src.converter as converter
 
 
-def test_convert_warehouse_credentials_raises_NullCredentialsError_on_null_credential():
+def test_convert_warehouse_credentials_raises_Error_on_null_credential():
     with pytest.raises(converter.NullCredentialsError):
-        converter.convert_warehouse_credentials(None, "schema", "user", "password")
+        converter.convert_warehouse_credentials(
+            None, "schema", "user", "password"
+            )
 
     with pytest.raises(converter.NullCredentialsError):
-        converter.convert_warehouse_credentials("port", None, "user", "password")
+        converter.convert_warehouse_credentials(
+            "port", None, "user", "password"
+            )
 
     with pytest.raises(converter.NullCredentialsError):
-        converter.convert_warehouse_credentials("port", "schema", None, "password")
+        converter.convert_warehouse_credentials(
+            "port", "schema", None, "password"
+            )
 
     with pytest.raises(converter.NullCredentialsError):
-        converter.convert_warehouse_credentials("port", "schema", "user", None)
+        converter.convert_warehouse_credentials(
+            "port", "schema", "user", None
+            )
 
 
 def test_convert_warehouse_credentials_returns_valid_json():
-    example = '{"port": "1234", "schema": "exampleschema", "user": "exampleuser", "password": "examplepassword"}'
+    example = '{"port": "1234", "schema": "exampleschema", '
+    example += '"user": "exampleuser", "password": "examplepassword"}'
 
     assert (
         converter.convert_warehouse_credentials(
@@ -27,7 +36,7 @@ def test_convert_warehouse_credentials_returns_valid_json():
     )
 
 
-def test_convert_ingestion_credentials_raises_NullCredentialsError_on_null_credential():
+def test_convert_ingestion_credentials_raises_Error_on_null_credential():
     with pytest.raises(converter.NullCredentialsError):
         converter.convert_ingestion_credentials(
             None, "port", "db", "username", "password"
@@ -55,10 +64,13 @@ def test_convert_ingestion_credentials_raises_NullCredentialsError_on_null_crede
 
 
 def test_convert_ingestion_wraehouse_returns_valid_json():
-    example = '{"hostname": "examplehostname", "port": "1234", "db": "exampledb", "username": "exampleusername", "password": "examplepassword"}'
+    example = '{"hostname": "examplehostname", "port": "1234", '
+    example += '"db": "exampledb", "username": "exampleusername", '
+    example += '"password": "examplepassword"}'
     assert (
         converter.convert_ingestion_credentials(
-            "examplehostname", "1234", "exampledb", "exampleusername", "examplepassword"
+            "examplehostname", "1234", "exampledb",
+            "exampleusername", "examplepassword"
         )
         == example
     )

@@ -26,7 +26,9 @@ def convert_warehouse_credentials(port, schema, user, password):
     if password is None:
         raise NullCredentialsError("password")
 
-    credentials = {"port": port, "schema": schema, "user": user, "password": password}
+    credentials = {
+        "port": port, "schema": schema, "user": user, "password": password
+        }
 
     return json.dumps(credentials)
 

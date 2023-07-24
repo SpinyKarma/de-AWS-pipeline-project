@@ -1,4 +1,4 @@
 .pytest_cache
-/db_credentials_to_json/__pycache__
 venv
 .vscode
+**/__pycache__
