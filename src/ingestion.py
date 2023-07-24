@@ -2,6 +2,7 @@ import json
 import pg8000.native as pg8000
 from pprint import pprint
 import boto3
+import csv
 
 
 class InvalidCredentialsError (Exception):
@@ -53,6 +54,70 @@ def connect():
 
 
 if __name__ == '__main__':
-    with connect() as db:
-        result = db.run('SELECT * FROM staff;')
-        pprint([column['name'] for column in db.columns])
+    
+    def postgres_to_csv(): 
+        with connect() as db:
+            staffdata = db.run('SELECT * FROM staff;')
+            column_names = [column['name'] for column in db.columns]
+            rows = [dict(zip(column_names, row)) for row in staffdata]
+            csv_file_path = 'staff_data.csv'
+        with open(csv_file_path, 'w', newline='') as csv_file:
+            csv_writer = csv.DictWriter(csv_file, fieldnames=column_names)
+            csv_writer.writeheader()
+            csv_writer.writerows(rows)
+        
+        with connect() as db:
+            staffdata = db.run('SELECT * FROM counterparty;')
+            column_names = [column['name'] for column in db.columns]
+            rows = [dict(zip(column_names, row)) for row in staffdata]
+            csv_file_path = 'counterparty_data.csv'
+        with open(csv_file_path, 'w', newline='') as csv_file:
+            csv_writer = csv.DictWriter(csv_file, fieldnames=column_names)
+            csv_writer.writeheader()
+            csv_writer.writerows(rows)
+    
+        with connect() as db:
+            staffdata = db.run('SELECT * FROM counterparty;')
+            column_names = [column['name'] for column in db.columns]
+            rows = [dict(zip(column_names, row)) for row in staffdata]
+            csv_file_path = 'counterparty_data.csv'
+        with open(csv_file_path, 'w', newline='') as csv_file:
+            csv_writer = csv.DictWriter(csv_file, fieldnames=column_names)
+            csv_writer.writeheader()
+            csv_writer.writerows(rows)
+
+        with connect() as db:
+            staffdata = db.run('SELECT * FROM counterparty;')
+            column_names = [column['name'] for column in db.columns]
+            rows = [dict(zip(column_names, row)) for row in staffdata]
+            csv_file_path = 'counterparty_data.csv'
+        with open(csv_file_path, 'w', newline='') as csv_file:
+            csv_writer = csv.DictWriter(csv_file, fieldnames=column_names)
+            csv_writer.writeheader()
+            csv_writer.writerows(rows)
+        
+        with connect() as db:
+            staffdata = db.run('SELECT * FROM counterparty;')
+            column_names = [column['name'] for column in db.columns]
+            rows = [dict(zip(column_names, row)) for row in staffdata]
+            csv_file_path = 'counterparty_data.csv'
+        with open(csv_file_path, 'w', newline='') as csv_file:
+            csv_writer = csv.DictWriter(csv_file, fieldnames=column_names)
+            csv_writer.writeheader()
+            csv_writer.writerows(rows)
+    
+    
+    
+    
+    
+    
+    
+    postgres_to_csv()
+            
+        
+        
+        
+     
+
+
+ 
