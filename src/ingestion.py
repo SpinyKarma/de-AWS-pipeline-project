@@ -37,10 +37,6 @@ def get_credentials():
 
 
 def connect():
-    """
-        Will return a connection to the ingestion database
-    """
-
     credentials = get_credentials()
 
     return pg8000.Connection(
