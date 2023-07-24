@@ -11,7 +11,7 @@ class InvalidCredentialsError (Exception):
 def get_credentials():
     """
         Loads our DB credentials using AWS secrets
-        Returns: 
+        Returns:
             a credentials dictionary containing:
             - username
             - password
