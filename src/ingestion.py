@@ -54,70 +54,38 @@ def connect():
 
 
 if __name__ == '__main__':
-    
-    def postgres_to_csv(): 
-        with connect() as db:
-            staffdata = db.run('SELECT * FROM staff;')
-            column_names = [column['name'] for column in db.columns]
-            rows = [dict(zip(column_names, row)) for row in staffdata]
-            csv_file_path = 'staff_data.csv'
-        with open(csv_file_path, 'w', newline='') as csv_file:
-            csv_writer = csv.DictWriter(csv_file, fieldnames=column_names)
-            csv_writer.writeheader()
-            csv_writer.writerows(rows)
-        
-        with connect() as db:
-            staffdata = db.run('SELECT * FROM counterparty;')
-            column_names = [column['name'] for column in db.columns]
-            rows = [dict(zip(column_names, row)) for row in staffdata]
-            csv_file_path = 'counterparty_data.csv'
-        with open(csv_file_path, 'w', newline='') as csv_file:
-            csv_writer = csv.DictWriter(csv_file, fieldnames=column_names)
-            csv_writer.writeheader()
-            csv_writer.writerows(rows)
-    
-        with connect() as db:
-            staffdata = db.run('SELECT * FROM counterparty;')
-            column_names = [column['name'] for column in db.columns]
-            rows = [dict(zip(column_names, row)) for row in staffdata]
-            csv_file_path = 'counterparty_data.csv'
-        with open(csv_file_path, 'w', newline='') as csv_file:
-            csv_writer = csv.DictWriter(csv_file, fieldnames=column_names)
-            csv_writer.writeheader()
-            csv_writer.writerows(rows)
 
-        with connect() as db:
-            staffdata = db.run('SELECT * FROM counterparty;')
-            column_names = [column['name'] for column in db.columns]
-            rows = [dict(zip(column_names, row)) for row in staffdata]
-            csv_file_path = 'counterparty_data.csv'
-        with open(csv_file_path, 'w', newline='') as csv_file:
-            csv_writer = csv.DictWriter(csv_file, fieldnames=column_names)
-            csv_writer.writeheader()
-            csv_writer.writerows(rows)
-        
-        with connect() as db:
-            staffdata = db.run('SELECT * FROM counterparty;')
-            column_names = [column['name'] for column in db.columns]
-            rows = [dict(zip(column_names, row)) for row in staffdata]
-            csv_file_path = 'counterparty_data.csv'
-        with open(csv_file_path, 'w', newline='') as csv_file:
-            csv_writer = csv.DictWriter(csv_file, fieldnames=column_names)
-            csv_writer.writeheader()
-            csv_writer.writerows(rows)
-    
-    
-    
-    
-    
-    
-    
-    postgres_to_csv()
-            
-        
-        
-        
-     
+    def extract_table_to_csv(table_name):
+        try:
+        # Connect to the PostgreSQL database
+            with connect() as db:
+            # Fetch data from the specified table
+                result = db.run(f'SELECT * FROM {table_name};')
+                column_names = [column['name'] for column in db.columns]
+                rows = [dict(zip(column_names, row)) for row in result]
 
+            csv_file_path = f'{table_name}_data.csv'
+            with open(csv_file_path, 'w', newline='') as csv_file:
+                csv_writer = csv.DictWriter(csv_file, fieldnames=column_names)
+                csv_writer.writeheader()
+                csv_writer.writerows(rows)
 
- 
+            return f'{table_name}_data.csv'
+
+        except Exception as e:
+            print(f"Error extracting data from {table_name}: {e}")
+            return None
+
+    def postgres_to_csv():
+        table_names = ['staff', 'counterparty', 'sales_order', 'address', 'payment', 'purchase_order', 'payment_type', 'transaction']
+        for table_name in table_names:
+            csv_file_path = extract_table_to_csv(table_name)
+            if csv_file_path:
+                print(f"Data extracted for {table_name} and saved to {csv_file_path}")
+            else:
+                print(f"Failed to extract data for {table_name}")
+
+postgres_to_csv()
+
+    
+  
