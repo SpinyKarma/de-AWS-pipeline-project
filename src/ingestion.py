@@ -2,14 +2,17 @@ import converter
 import json
 import pg8000.native as pg8000
 from pprint import pprint
-# import boto3
-boto3 = None
+import boto3
+
+from os import system
 
 
-"""
 def get_credentials():
+    """
         Will return a dictionary containing
         our credentials (as defined in converter.py)
+    """
+
     secretsmanager = boto3.client('secretsmanager')
     secret_name = 'Ingestion_credentials'
     credentials_response = secretsmanager.get_secret_value(
@@ -17,10 +20,6 @@ def get_credentials():
     )
     credentials = json.loads(credentials_response['SecretString'])
     return credentials
-"""
-
-hostname = 'nc-data-eng-totesys-production'
-hostname += '.chpsczt8h1nu.eu-west-2.rds.amazonaws.com'
 
 
 def connect():
@@ -28,16 +27,7 @@ def connect():
         Will return a connection to the ingestion database
     """
 
-#    credentials = get_credentials()
-    credentials = converter.convert_ingestion_credentials(
-        hostname,
-        port='5432',
-        db='totesys',
-        username='project_user_5',
-        password='FiA0ooxIw4ojnmcJmc8VwrWm'
-    )
-
-    credentials = json.loads(credentials)
+    credentials = get_credentials()
 
     return pg8000.Connection(
         user=credentials['username'],
