@@ -4,6 +4,10 @@ from pprint import pprint
 import boto3
 
 
+class InvalidCredentialsError (Exception):
+    pass
+
+
 def get_credentials():
     """
         Loads our DB credentials using AWS secrets
@@ -14,6 +18,8 @@ def get_credentials():
             - hostname
             - db
             - port
+        Throws:
+            InvalidCredentialsError if the keys of the dictionary are invalid
     """
 
     secretsmanager = boto3.client('secretsmanager')
@@ -22,6 +28,11 @@ def get_credentials():
         SecretId=secret_name
     )
     credentials = json.loads(credentials_response['SecretString'])
+    required_keys = ['hostname', 'port', 'db', 'username', 'password']
+
+    if list(credentials.keys()) != required_keys:
+        raise InvalidCredentialsError(credentials)
+
     return credentials
 
 
