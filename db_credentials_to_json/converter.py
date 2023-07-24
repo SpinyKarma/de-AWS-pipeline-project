@@ -63,7 +63,3 @@ def convert_ingestion_credentials(hostname, port, db, username, password):
     }
 
     return json.dumps(credentials)
-
-
-print(convert_ingestion_credentials('examplehostname', '1234',
-      'exampledb', 'exampleusername', 'examplepassword'))
