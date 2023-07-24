@@ -28,7 +28,7 @@ def convert_warehouse_credentials(port, schema, user, password):
 
     credentials = {
         "port": port, "schema": schema, "user": user, "password": password
-        }
+    }
 
     return json.dumps(credentials)
 
