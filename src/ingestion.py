@@ -88,3 +88,4 @@ if __name__ == '__main__':
                 and saved to {csv_file_path}''')
             else:
                 print(f"Failed to extract data for {table_name}")
+
