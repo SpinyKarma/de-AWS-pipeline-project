@@ -85,7 +85,6 @@ if __name__ == '__main__':
             else:
                 print(f"Failed to extract data for {table_name}")
 
-postgres_to_csv()
 
     
   
