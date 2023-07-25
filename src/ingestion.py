@@ -8,6 +8,7 @@ from pprint import pprint
 def get_ingestion_bucket_name():
     name = 'terrific-totes-ingestion-bucket'
     name += '20230725102602583400000001'
+    return name
 
 
 INGESTION_BUCKET_NAME = get_ingestion_bucket_name()
