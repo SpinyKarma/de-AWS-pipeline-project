@@ -66,3 +66,7 @@ def test_get_credentials_returns_dict():
 
     credentials = get_credentials()
     assert isinstance(credentials, dict)
+
+
+def test_connect_returns_connection():
+    assert isinstance(connect(), pg8000.Connection)
