@@ -2,6 +2,7 @@ import json
 import pg8000.native as pg8000
 import boto3
 import csv
+import os
 
 
 def get_ingestion_bucket_name():
@@ -79,8 +80,32 @@ class CsvBuilder:
         return ''.join(self.rows)
 
 
-def extract_table_to_csv(table_name):
+
+
+def get_last_run_timestamp():
+    timestamp_file = 'last_run_timestamp.txt'
+    if os.path.exists(timestamp_file):
+        with open(timestamp_file, 'r') as file:
+            last_run_timestamp_str = file.read().strip()
+        try:
+            last_run_timestamp = datetime.datetime.fromisoformat(last_run_timestamp_str)
+            return last_run_timestamp
+        except ValueError:
+            print('invalid timestamp format in file')
+            return None
+    else:
+        return None
+
+def set_last_run_timestamp(timestamp):
+    timestamp_file = 'last_run_timestamp.txt'
+    current_timestamp_str = timestamp.isoformat()
+    with open(timestamp_file, 'w') as file:
+        file.write(current_timestamp_str)
+    pass
+
+def extract_table_to_csv(table_name, last_run_timestamp):
     try:
+        
         """
             Grab all the data from the database
         """
@@ -102,7 +127,7 @@ def extract_table_to_csv(table_name):
         print(f"Error extracting data from {table_name}: {e}")
 
 
-def postgres_to_csv():
+def postgres_to_csv(last_run_timestamp):
     table_names = [
         'staff',
         'counterparty',
@@ -118,7 +143,7 @@ def postgres_to_csv():
 
     for table_name in table_names:
         print(f'Ingesting {table_name}...')
-        csv = extract_table_to_csv(table_name)
+        csv = extract_table_to_csv(table_name, last_run_timestamp)
         if csv:
             table_name_to_csv[table_name] = csv
             print(f'Ingestion of {table_name} is complete')
@@ -130,8 +155,8 @@ def postgres_to_csv():
 
 
 def ingest(s3_client):
-    table_csv = postgres_to_csv()
-
+    last_run_timestamp = get_last_run_timestamp()
+    table_csv = postgres_to_csv(last_run_timestamp)
     for table_name in table_csv.keys():
         csv_data = table_csv[table_name]
         s3_client.put_object(
@@ -140,8 +165,7 @@ def ingest(s3_client):
             Key=f'{table_name}.csv',
             ContentType='application/text'
         )
-
-
+  
 if __name__ == '__main__':
     s3_client = boto3.client('s3')
     ingest(s3_client)
