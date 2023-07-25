@@ -36,17 +36,17 @@ data "aws_iam_policy_document" "cw_ingestion_write_policy_document" {
 }
 
 resource "aws_iam_policy" "s3_write_policy" {
-  name_prefix = "s3-write-policy-${var.lambda_name}" #change to actual lambda name when lambda is deployed
+  name_prefix = "s3-write-policy-ingestion-"
   policy      = data.aws_iam_policy_document.s3_write_policy_document.json
 }
 
 resource "aws_iam_policy" "secret_read_policy" {
-  name_prefix = "secret-read-policy-${var.lambda_name}" #change to actual lambda name when lambda is deployed
+  name_prefix = "secret-read-policy-ingestion-"
   policy      = data.aws_iam_policy_document.secret_read_policy_document.json
 }
 
 resource "aws_iam_policy" "cw_write_policy" {
-  name_prefix = "cw-write-policy-${var.lambda_name}" #change to actual lambda name when lambda is deployed
+  name_prefix = "cw-write-policy-ingestion-"
   policy      = data.aws_iam_policy_document.cw_ingestion_write_policy_document.json
 }
 
@@ -55,7 +55,7 @@ resource "aws_iam_policy" "cw_write_policy" {
 ############################
 
 resource "aws_iam_role" "ingestion_lambda_role" {
-  name_prefix        = "role-${var.lambda_name}" #change to actual lambda name when lambda is deployed
+  name_prefix        = "role-ingestion-"
   assume_role_policy = <<EOF
     {
         "Version": "2012-10-17",
