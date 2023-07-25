@@ -58,8 +58,6 @@ def extract_table_to_csv(table_name):
     """
         Create our tmp directory if it does not exist
     """
-    os.system(f'mkdir {CSV_RESULT_FOLDER}')
-
     try:
 
         """
