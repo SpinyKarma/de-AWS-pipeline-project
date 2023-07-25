@@ -1,11 +1,11 @@
 import pytest
-from src.ingestion import *
-from moto import mock_s3, mock_secretsmanager
+import src.ingestion as i
+from moto import mock_secretsmanager
 import boto3
 
 
 def test_ingestion_bucket_name():
-    name = get_ingestion_bucket_name()
+    name = i.get_ingestion_bucket_name()
     correct_name = 'terrific-totes-ingestion-bucket'
     correct_name += '20230725102602583400000001'
     assert name == correct_name
@@ -14,7 +14,7 @@ def test_ingestion_bucket_name():
 @mock_secretsmanager
 def test_get_credentials_throws_Exception_on_no_credentials():
     with pytest.raises(Exception):
-        get_credentials()
+        i.get_credentials()
 
 
 @mock_secretsmanager
@@ -23,16 +23,16 @@ def test_get_credentials_throws_InvalidCredentialsError():
     client.create_secret(Name='Ingestion_credentials',
                          SecretString='''
                         {
-                            "hostname": "bad", 
-                            "port": "1234", 
-                            "db": "bad", 
+                            "hostname": "bad",    
+                            "port": "1234",
+                            "db": "bad",
                             "username": "bad"
                         }
                         '''
                          )
 
-    with pytest.raises(InvalidCredentialsError):
-        get_credentials()
+    with pytest.raises(i.InvalidCredentialsError):
+        i.get_credentials()
 
 
 @mock_secretsmanager
@@ -45,8 +45,8 @@ def get_credentials_throws_JSONDecodeError():
                         }
                         ''')
 
-    with pytest.raises(json.decoder.JSONDecodeError):
-        get_credentials()
+    with pytest.raises(i.json.decoder.JSONDecodeError):
+        i.get_credentials()
 
 
 @mock_secretsmanager
@@ -55,18 +55,18 @@ def test_get_credentials_returns_dict():
     client.create_secret(Name='Ingestion_credentials',
                          SecretString='''
                         {
-                            "hostname": "example", 
-                            "port": "1234", 
-                            "db": "example", 
+                            "hostname": "example",
+                            "port": "1234",
+                            "db": "example",
                             "username": "example",
                             "password": "example"
                         }
                         '''
                          )
 
-    credentials = get_credentials()
+    credentials = i.get_credentials()
     assert isinstance(credentials, dict)
 
 
 def test_connect_returns_connection():
-    assert isinstance(connect(), pg8000.Connection)
+    assert isinstance(i.connect(), i.pg8000.Connection)
