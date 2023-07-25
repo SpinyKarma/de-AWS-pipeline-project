@@ -4,7 +4,12 @@ import boto3
 import csv
 
 
-INGESTION_BUCKET_NAME = 'raw-csv-data-bucket'
+def get_ingestion_bucket_name():
+    name = 'terrific-totes-ingestion-bucket'
+    name += '20230725102602583400000001'
+
+
+INGESTION_BUCKET_NAME = get_ingestion_bucket_name()
 
 
 class TableIngestionError(Exception):
@@ -138,5 +143,5 @@ def ingest(s3_client):
 
 if __name__ == '__main__':
     s3_client = boto3.client('s3')
-    ingest()
+    ingest(s3_client)
     # print(postgres_to_csv())
