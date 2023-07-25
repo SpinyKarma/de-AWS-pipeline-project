@@ -4,6 +4,9 @@ import boto3
 import csv
 
 
+INGESTION_BUCKET_NAME = 'raw-csv-data-bucket'
+
+
 class TableIngestionError(Exception):
     pass
 
@@ -120,17 +123,20 @@ def postgres_to_csv():
     return table_name_to_csv
 
 
-def ingest():
+def ingest(s3_client):
     table_csv = postgres_to_csv()
 
-    with boto3.client('s3') as s3_client:
-        for table_name in table_csv.keys():
-            csv_data = table_csv[table_name]
-
-            s3.write_bucket()
-
-        pass
+    for table_name in table_csv.keys():
+        csv_data = table_csv[table_name]
+        s3_client.put_object(
+            Body=csv_data,
+            Bucket=INGESTION_BUCKET_NAME,
+            Key=f'{table_name}.csv',
+            ContentType='application/text'
+        )
 
 
 if __name__ == '__main__':
-    print(postgres_to_csv())
+    s3_client = boto3.client('s3')
+    ingest()
+    # print(postgres_to_csv())
