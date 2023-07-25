@@ -8,7 +8,7 @@ data "aws_iam_policy_document" "s3_write_policy_document" {
     actions = ["s3:PutObject"]
 
     resources = [
-      #"${aws_s3_bucket.@@@.arn}/*", #replace @@@ with ingestion bucket label then uncomment
+      "${aws_s3_bucket.raw_csv_data_bucket.arn}/*",
     ]
   }
 }
