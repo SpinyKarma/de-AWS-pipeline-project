@@ -4,7 +4,17 @@ import boto3
 import csv
 from pprint import pprint
 
-CSV_RESULT_FOLDER = 'tmp'
+
+def get_ingestion_bucket_name():
+    name = 'terrific-totes-ingestion-bucket'
+    name += '20230725102602583400000001'
+
+
+INGESTION_BUCKET_NAME = get_ingestion_bucket_name()
+
+
+class TableIngestionError(Exception):
+    pass
 
 
 class InvalidCredentialsError (Exception):
@@ -104,17 +114,34 @@ def postgres_to_csv():
         'transaction',
     ]
 
+    table_name_to_csv = {}
+
     for table_name in table_names:
+        print(f'Ingesting {table_name}...')
         csv = extract_table_to_csv(table_name)
         if csv:
-            # TODO: RETURN DICT OF TABLE NAME TO CSV DATA!
-            print(csv)
+            table_name_to_csv[table_name] = csv
+            print(f'Ingestion of {table_name} is complete')
         else:
-            # TODO: RAISE EXCEPTION
-            print(f"Failed to extract data for {table_name}")
+            raise TableIngestionError(table_name)
+
+    print('OK')
+    return table_name_to_csv
+
+
+def ingest(s3_client):
+    table_csv = postgres_to_csv()
+
+    for table_name in table_csv.keys():
+        csv_data = table_csv[table_name]
+        s3_client.put_object(
+            Body=csv_data,
+            Bucket=INGESTION_BUCKET_NAME,
+            Key=f'{table_name}.csv',
+            ContentType='application/text'
+        )
 
 
 if __name__ == '__main__':
-    with connect() as db:
-        result = db.run('SELECT * FROM staff;')
-        pprint([column['name'] for column in db.columns])
+    s3_client = boto3.client('s3')
+    ingest(s3_client)
