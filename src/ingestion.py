@@ -6,6 +6,10 @@ import csv
 CSV_RESULT_FOLDER = 'tmp'
 
 
+class TableIngestionError(Exception):
+    pass
+
+
 class InvalidCredentialsError (Exception):
     pass
 
@@ -103,15 +107,26 @@ def postgres_to_csv():
         'transaction',
     ]
 
+    table_name_to_csv = {}
+
     for table_name in table_names:
+        print(f'Ingesting {table_name}...')
         csv = extract_table_to_csv(table_name)
         if csv:
-            # TODO: RETURN DICT OF TABLE NAME TO CSV DATA!
-            print(csv)
+            table_name_to_csv[table_name] = csv
+            print(f'Ingestion of {table_name} is complete')
         else:
-            # TODO: RAISE EXCEPTION
-            print(f"Failed to extract data for {table_name}")
+            raise TableIngestionError(table_name)
+
+    print('OK')
+    return table_name_to_csv
+
+
+def ingest():
+    with boto3.client('s3') as s3_client:
+
+        pass
 
 
 if __name__ == '__main__':
-    postgres_to_csv()
+    print(postgres_to_csv())
