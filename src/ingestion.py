@@ -2,6 +2,7 @@ import json
 import pg8000.native as pg8000
 import boto3
 import csv
+from pprint import pprint
 
 
 def get_ingestion_bucket_name():
@@ -144,4 +145,3 @@ def ingest(s3_client):
 if __name__ == '__main__':
     s3_client = boto3.client('s3')
     ingest(s3_client)
-    # print(postgres_to_csv())
