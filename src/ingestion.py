@@ -3,8 +3,6 @@ import pg8000.native as pg8000
 import boto3
 import csv
 
-CSV_RESULT_FOLDER = 'tmp'
-
 
 class TableIngestionError(Exception):
     pass
@@ -123,7 +121,13 @@ def postgres_to_csv():
 
 
 def ingest():
+    table_csv = postgres_to_csv()
+
     with boto3.client('s3') as s3_client:
+        for table_name in table_csv.keys():
+            csv_data = table_csv[table_name]
+
+            s3.write_bucket()
 
         pass
 
