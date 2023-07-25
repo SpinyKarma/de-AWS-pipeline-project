@@ -2,6 +2,7 @@ import json
 import pg8000.native as pg8000
 import boto3
 import csv
+from pprint import pprint
 
 CSV_RESULT_FOLDER = 'tmp'
 
@@ -114,4 +115,6 @@ def postgres_to_csv():
 
 
 if __name__ == '__main__':
-    postgres_to_csv()
+    with connect() as db:
+        result = db.run('SELECT * FROM staff;')
+        pprint([column['name'] for column in db.columns])
