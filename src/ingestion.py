@@ -2,6 +2,9 @@ import json
 import pg8000.native as pg8000
 import boto3
 import csv
+import os
+
+CSV_RESULT_FOLDER = 'tmp'
 
 
 class InvalidCredentialsError (Exception):
@@ -37,6 +40,9 @@ def get_credentials():
 
 
 def connect():
+    """
+        Will return a connection to the DB
+    """
     credentials = get_credentials()
 
     return pg8000.Connection(
@@ -49,12 +55,25 @@ def connect():
 
 
 def extract_table_to_csv(table_name):
+    """
+        Create our tmp directory if it does not exist
+    """
+    os.system(f'mkdir {CSV_RESULT_FOLDER}')
+
     try:
+
+        """
+            Grab all the data from the database
+        """
         with connect() as db:
             result = db.run(f'SELECT * FROM {pg8000.identifier(table_name)} ;')
             column_names = [column['name'] for column in db.columns]
             rows = [dict(zip(column_names, row)) for row in result]
-            csv_file_path = f'{table_name}_data.csv'
+            csv_file_path = f'{CSV_RESULT_FOLDER}/{table_name}_data.csv'
+
+        """
+            Convert that data to a CSV form, and write it to the disk
+        """
         with open(csv_file_path, 'w', newline='') as csv_file:
             csv_writer = csv.DictWriter(csv_file, fieldnames=column_names)
             csv_writer.writeheader()
@@ -62,7 +81,6 @@ def extract_table_to_csv(table_name):
             return f'{table_name}_data.csv'
     except Exception as e:
         print(f"Error extracting data from {table_name}: {e}")
-        return None
 
 
 def postgres_to_csv():
@@ -76,6 +94,7 @@ def postgres_to_csv():
         'payment_type',
         'transaction',
     ]
+
     for table_name in table_names:
         csv_file_path = extract_table_to_csv(table_name)
         if csv_file_path:
