@@ -19,27 +19,18 @@ data "aws_iam_policy_document" "secret_read_policy_document" {
     actions = ["secretsmanager:GetSecretValue"]
 
     resources = [
-      "arn:aws:secretsmanager:eu-west-2:967289384825:secret:*"
+      "arn:aws:secretsmanager:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:secret:*"
     ]
   }
 }
 
-data "aws_iam_policy_document" "cw_write_policy_document" {
-  statement {
-
-    actions = ["logs:CreateLogGroup"]
-
-    resources = [
-      "arn:aws:logs:eu-west-2:967289384825:*"
-    ]
-  }
-
+data "aws_iam_policy_document" "cw_ingestion_write_policy_document" {
   statement {
 
     actions = ["logs:CreateLogStream", "logs:PutLogEvents"]
 
     resources = [
-      "arn:aws:logs:eu-west-2:967289384825:log-group:/aws/lambda/${var.lambda_name}:*"
+      "${aws_cloudwatch_log_group.ingestion_log_group.arn}:*"
     ]
   }
 }
@@ -56,7 +47,7 @@ resource "aws_iam_policy" "secret_read_policy" {
 
 resource "aws_iam_policy" "cw_write_policy" {
   name_prefix = "cw-write-policy-${var.lambda_name}" #change to actual lambda name when lambda is deployed
-  policy      = data.aws_iam_policy_document.cw_write_policy_document.json
+  policy      = data.aws_iam_policy_document.cw_ingestion_write_policy_document.json
 }
 
 ############################
