@@ -19,7 +19,7 @@ def test_get_credentials_throws_Exception_on_no_credentials():
 
 @mock_secretsmanager
 def test_get_credentials_throws_InvalidCredentialsError():
-    client = boto3.client('secretsmanager')
+    client = boto3.client('secretsmanager', region_name='eu-west-2')
     client.create_secret(Name='Ingestion_credentials',
                          SecretString='''
                         {
@@ -51,7 +51,7 @@ def get_credentials_throws_JSONDecodeError():
 
 @mock_secretsmanager
 def test_get_credentials_returns_dict():
-    client = boto3.client('secretsmanager')
+    client = boto3.client('secretsmanager', region_name='eu-west-2')
     client.create_secret(Name='Ingestion_credentials',
                          SecretString='''
                         {
