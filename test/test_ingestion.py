@@ -2,6 +2,7 @@ import pytest
 import src.ingestion as i
 from moto import mock_secretsmanager
 import boto3
+from unittest.mock import Mock
 
 
 def test_ingestion_bucket_name():
@@ -36,7 +37,7 @@ def test_get_credentials_throws_InvalidCredentialsError():
 
 
 @mock_secretsmanager
-def get_credentials_throws_JSONDecodeError():
+def test_get_credentials_throws_JSONDecodeError():
     client = boto3.client('secretsmanager')
     client.create_secret(Name='Ingestion_credentials',
                          SecretString='''
@@ -69,7 +70,19 @@ def test_get_credentials_returns_dict():
 
 
 def test_connect_returns_connection():
-    assert isinstance(i.connect(), i.pg8000.Connection)
+    mock_connection = Mock()
+    # client = boto3.client('secretsmanager', region_name='eu-west-2')
+    # Idea was to create a fake secret and use it to create a db connection
+    # client.put_secret_value()
+    i.connect(mock_connection)
+    host = "nc-data-eng-totesys-production"
+    host += ".chpsczt8h1nu.eu-west-2.rds.amazonaws.com"
+    mock_connection.assert_called_with(
+        user="project_user_5",
+        password="FiA0ooxIw4ojnmcJmc8VwrWm",
+        host=host,
+        database="totesys",
+        port="5432")
 
 
 def test_csv_builder():

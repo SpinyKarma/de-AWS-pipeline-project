@@ -51,13 +51,13 @@ def get_credentials():
     return credentials
 
 
-def connect():
+def connect(connection_func=pg8000.Connection):
     """
         Will return a connection to the DB
     """
     credentials = get_credentials()
 
-    return pg8000.Connection(
+    return connection_func(
         user=credentials['username'],
         password=credentials['password'],
         host=credentials['hostname'],
