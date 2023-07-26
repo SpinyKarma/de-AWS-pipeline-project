@@ -81,26 +81,27 @@ class CsvBuilder:
         return ''.join(self.rows)
 
 
-def get_last_ingestion_timestamps():
+def get_last_ingestion_timestamps(
+        s3_client=boto3.client('s3'), Bucket=INGESTION_BUCKET_NAME):
     last_ingestion_timestamps = {}
     # list objects in s3 bucket
-    s3_client = boto3.client('s3')
-    response = s3_client.list_objects_v2(Bucket=INGESTION_BUCKET_NAME)
+    response = s3_client.list_objects_v2(Bucket=Bucket)
     # iterate thru objects and get metatdata
     if 'Contents' in response:
         for obj in response['Contents']:
             key = obj['Key']
     # retrieve last ingestion timestamp metadata
             last_ingestion_timestamp = obj.get(
-                'Metadata', {}).get('LastIngestionTimestamp')
+                'LastModified')
             if last_ingestion_timestamp:
-                last_ingestion_timestamp[key[:-4]] = last_ingestion_timestamp
+                last_ingestion_timestamps[key[:-4]] = last_ingestion_timestamp
     return last_ingestion_timestamps
 
 
-def set_last_ingestion_timestamps(last_ingestion_timestamps):
-    s3_client = boto3.client('s3')
-    response = s3_client.list_objects_v2(Bucket=INGESTION_BUCKET_NAME)
+def set_last_ingestion_timestamps(
+    last_ingestion_timestamps, s3_client=boto3.client('s3'),
+        Bucket=INGESTION_BUCKET_NAME):
+    response = s3_client.list_objects_v2(Bucket=Bucket)
     # iterate thru objects and updata metatdata
     if 'Contents' in response:
         for obj in response['Contents']:
@@ -111,8 +112,8 @@ def set_last_ingestion_timestamps(last_ingestion_timestamps):
             if table_name in last_ingestion_timestamps:
                 # update metadata for s3 object
                 s3_client.copy_object(
-                    Bucket=INGESTION_BUCKET_NAME,
-                    CopySource={'Bucket': INGESTION_BUCKET_NAME, 'Key': key},
+                    Bucket=Bucket,
+                    CopySource={'Bucket': Bucket, 'Key': key},
                     Key=key,
                     Metadata={
                         'LastIngestionTimestamp': current_timestamp
