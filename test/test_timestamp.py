@@ -1,7 +1,11 @@
 from datetime import datetime as dt
 import boto3
-from moto import mock_s3 #, ingest
-from src.ingestion import get_last_ingestion_timestamps, set_last_ingestion_timestamps
+from moto import mock_s3
+from lambda_ingestion.ingestion import (
+    get_last_ingestion_timestamps,
+    set_last_ingestion_timestamps,
+    # ingest
+)
 # function returning a sample csv string for testing
 
 
@@ -37,6 +41,7 @@ def test_timestamp_functionality():
     assert 'test_table' in updated_last_ingestion_timestamps
     assert isinstance(updated_last_ingestion_timestamps['test_table'], dt)
 
+
 @mock_s3
 def test_timestamp_set():
     bucket_name = "test_ingestion_bucket"
@@ -48,9 +53,9 @@ def test_timestamp_set():
         Key='test_table.csv',
         ContentType='application/text',
     )
-    set_last_ingestion_timestamps(get_last_ingestion_timestamps(s3_client=s3_client, Bucket=bucket_name), s3_client=s3_client, Bucket=bucket_name)
-    response=s3_client.get_object(Bucket=bucket_name, Key='test_table.csv')
-    metadata=response.get('Metadata')
-    #assert metadata == False
+    set_last_ingestion_timestamps(get_last_ingestion_timestamps(
+        s3_client=s3_client, Bucket=bucket_name), s3_client=s3_client, Bucket=bucket_name)
+    response = s3_client.get_object(Bucket=bucket_name, Key='test_table.csv')
+    metadata = response.get('Metadata')
+    # assert metadata == False
     assert metadata['lastingestiontimestamp'] == '2023-07-26T12:03:34.650508'
-    

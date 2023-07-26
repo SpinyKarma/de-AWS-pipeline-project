@@ -82,7 +82,8 @@ class CsvBuilder:
 
 
 def get_last_ingestion_timestamps(
-        s3_client=boto3.client('s3'), Bucket=INGESTION_BUCKET_NAME):
+    s3_client=boto3.client('s3'), Bucket=INGESTION_BUCKET_NAME
+):
     last_ingestion_timestamps = {}
     # list objects in s3 bucket
     response = s3_client.list_objects_v2(Bucket=Bucket)
