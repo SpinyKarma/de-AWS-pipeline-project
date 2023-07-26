@@ -3,9 +3,10 @@ import boto3
 from moto import mock_s3
 from src.lambda_ingestion.ingestion import (
     get_ingestion_timestamps,
-    # extract_table_to_csv
+    extract_table_to_csv
 )
-# from unittest.mock import Mock
+from unittest.mock import Mock, patch
+# from pprint import pprint
 # function returning a sample csv string for testing
 current_timestamp = dt.now().isoformat()
 
@@ -36,25 +37,26 @@ def test_timestamp_functionality():
         Key='test_table.csv',
         ContentType='application/text',
     )
-    list = get_ingestion_timestamps(s3_client, bucket_name, ['test_table'])
+    list = get_ingestion_timestamps(bucket_name, ['test_table'])
     assert list['test_table'].isoformat() == current_timestamp
 
-# Mocks don't support context manager so don't know how to test
-# def test_extract_table_to_csv_concats_query_result_to_csv():
-#     mock_connection = Mock()
-#     mock_db = Mock()
-#     mock_connection.return_value = mock_db
-#     mock_db.run.return_value = [
-#         ["transaction_id", "transaction_type", "last_updated"],
-#         ["434", "SALE", current_timestamp],
-#         ["435", "PURCHASE", current_timestamp],
-#         ["436", "SALE", current_timestamp],
-#         ["437", "PURCHASE", current_timestamp],
-#     ]
-#     res = extract_table_to_csv("test_table", dt(1970, 1, 1), mock_connection)
-#     expected = "transaction_id, transaction_type, last_updated\r\n"
-#     expected += f"434, SALE, {current_timestamp}\r\n"
-#     expected += f"435, PURCHASE, {current_timestamp}\r\n"
-#     expected += f"436, SALE, {current_timestamp}\r\n"
-#     expected += f"437, PURCHASE, {current_timestamp}\r\n"
-#     assert res == expected
+
+@patch('src.lambda_ingestion.ingestion.connect')
+def test_extract_table_to_csv_concats_query_result_to_csv(mock_connection):
+    mock_db = Mock()
+    mock_connection.return_value.__enter__.return_value = mock_db
+    mock_db.run.return_value = [
+        ["434", "SALE", current_timestamp],
+        ["435", "PURCHASE", current_timestamp],
+        ["436", "SALE", current_timestamp],
+        ["437", "PURCHASE", current_timestamp],
+    ]
+    mock_db.columns = [{'name': "transaction_id"}, {
+        'name': "transaction_type"}, {'name': "last_updated"}]
+    res = extract_table_to_csv("test_table", dt(1970, 1, 1))
+    expected = "transaction_id,transaction_type,last_updated\r\n"
+    expected += f"434,SALE,{current_timestamp}\r\n"
+    expected += f"435,PURCHASE,{current_timestamp}\r\n"
+    expected += f"436,SALE,{current_timestamp}\r\n"
+    expected += f"437,PURCHASE,{current_timestamp}\r\n"
+    assert res == expected
