@@ -37,7 +37,7 @@ def get_credentials():
             InvalidCredentialsError if the keys of the dictionary are invalid
     """
 
-    secretsmanager = boto3.client('secretsmanager')
+    secretsmanager = boto3.client('secretsmanager', region_name='eu-west-2')
     secret_name = 'Ingestion_credentials'
     credentials_response = secretsmanager.get_secret_value(
         SecretId=secret_name
