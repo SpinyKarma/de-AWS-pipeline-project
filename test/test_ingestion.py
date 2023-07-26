@@ -1,5 +1,5 @@
 import pytest
-import src.ingestion as i
+import src.lambda_ingestion.ingestion as i
 from moto import mock_secretsmanager
 import boto3
 
