@@ -1,5 +1,5 @@
 import pytest
-import src.ingestion as i
+import src.lambda_ingestion.ingestion as i
 from moto import mock_secretsmanager
 import boto3
 
@@ -37,7 +37,7 @@ def test_get_credentials_throws_InvalidCredentialsError():
 
 @mock_secretsmanager
 def test_get_credentials_throws_JSONDecodeError():
-    client = boto3.client('secretsmanager')
+    client = boto3.client('secretsmanager', region_name="eu-west-2")
     client.create_secret(Name='Ingestion_credentials',
                          SecretString='''
                         {
