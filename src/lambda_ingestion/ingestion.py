@@ -38,8 +38,8 @@ class InvalidCredentialsError (Exception):
 
 
 def get_credentials():
-    """
-        Loads our DB credentials using AWS secrets
+    """Loads our DB credentials using AWS secrets.
+
         Returns:
             a credentials dictionary containing:
             - username
@@ -47,7 +47,8 @@ def get_credentials():
             - hostname
             - db
             - port
-        Throws:
+
+        Raises:
             InvalidCredentialsError if the keys of the dictionary are invalid.
     """
 
@@ -66,9 +67,7 @@ def get_credentials():
 
 
 def connect():
-    """
-        Will return a connection to the DB
-    """
+    """Will return a connection to the DB."""
     credentials = get_credentials()
 
     return pg8000.Connection(
@@ -81,9 +80,7 @@ def connect():
 
 
 class CsvBuilder:
-    """
-        For creating CSV without writing to a file
-    """
+    """For creating CSV without writing to a file."""
 
     def __init__(self):
         self.rows = []
@@ -95,13 +92,10 @@ class CsvBuilder:
         return ''.join(self.rows)
 
 
-def get_ingestion_timestamps(s3_client, Bucket, table_list):
+def get_ingestion_timestamps(Bucket, table_list):
     '''Extracts the most recent last_updated of each csv in the passed bucket.
 
     Args:
-        s3_client: A boto3.client("s3") object, included here for
-        dependency injection purposes.
-
         Bucket: Name of the bucket to pull metadata from.
 
         table_list: A list of the table names to perform the function on.
@@ -111,7 +105,7 @@ def get_ingestion_timestamps(s3_client, Bucket, table_list):
         key and the extracted timestamp as the value.
     '''
     last_ingestion_timestamps = {}
-
+    s3_client = boto3.client("s3")
     for file in table_list:
         key = file + ".csv"
         try:
@@ -131,8 +125,8 @@ def get_ingestion_timestamps(s3_client, Bucket, table_list):
     return last_ingestion_timestamps
 
 
-def extract_table_to_csv(table_name, timestamp, connection=connect):
-    '''Runs a query on the given able filtered by the given timestamp.
+def extract_table_to_csv(table_name, timestamp):
+    '''Runs a query on the given table filtered by the given timestamp.
 
     Args:
         table_name: The name of the table to query.
@@ -146,11 +140,10 @@ def extract_table_to_csv(table_name, timestamp, connection=connect):
         include headers.
     '''
 
-    with connection() as db:
+    with connect() as db:
         query_str = f'SELECT * FROM {pg8000.identifier(table_name)} WHERE '
         query_str += f'last_updated > {pg8000.literal(timestamp.isoformat())};'
         result = db.run(query_str)
-        # pprint(result)
         column_names = [column['name'] for column in db.columns]
         rows = [dict(zip(column_names, row)) for row in result]
         csv_builder = CsvBuilder()
@@ -162,7 +155,7 @@ def extract_table_to_csv(table_name, timestamp, connection=connect):
         return csv_text
 
 
-def postgres_to_csv(s3_client, Bucket, table_list):
+def postgres_to_csv(Bucket, table_list):
     '''Extracts new csv data from each table and appends to files in bucket.
 
     Queries each table in the database and writes the contents to a csv file
@@ -170,10 +163,7 @@ def postgres_to_csv(s3_client, Bucket, table_list):
     the tables, then appends the new data to the csvs.
 
     Args:
-        s3_client: A boto3.client("s3") object, included here for
-        dependency injection purposes.
-
-        Bucket: Name of the bucket to pull metadata from.
+        Bucket: Name of the bucket to modify the csvs of.
 
         table_list: A list of the table names to perform the function on.
 
@@ -183,7 +173,8 @@ def postgres_to_csv(s3_client, Bucket, table_list):
     Side-effects:
         Updates the S3 csvs with new data.
     '''
-    timestamp_dict = get_ingestion_timestamps(s3_client, Bucket, table_list)
+    s3_client = boto3.client("s3")
+    timestamp_dict = get_ingestion_timestamps(Bucket, table_list)
 
     for table in timestamp_dict:
         timestamp = timestamp_dict[table]
