@@ -1,6 +1,6 @@
 import pytest
 import src.ingestion as i
-from moto import mock_secretsmanager
+from moto import mock_secretsmanager, mock_s3
 import boto3
 
 
@@ -68,7 +68,12 @@ def test_get_credentials_returns_dict():
     assert isinstance(credentials, dict)
 
 
+@mock_secretsmanager
+@mock_s3
 def test_connect_returns_connection():
+    client = boto3.client('secretsmanager', region_name='eu-west-2')
+    # Idea was to create a fake secret and use it to create a db connection
+    # client.put_secret_value()
     assert isinstance(i.connect(), i.pg8000.Connection)
 
 

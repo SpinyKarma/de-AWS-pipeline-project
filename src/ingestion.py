@@ -2,6 +2,7 @@ import json
 import pg8000.native as pg8000
 import boto3
 import csv
+from pprint import pprint
 
 
 def get_ingestion_bucket_name():
