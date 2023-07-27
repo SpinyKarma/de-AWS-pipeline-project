@@ -1,7 +1,7 @@
 from datetime import datetime as dt
 import boto3
 from moto import mock_s3
-from src.lambda_ingestion.ingestion import (
+from src.lambda_ingestion.ingestion_lambda import (
     get_ingestion_timestamps,
     extract_table_to_csv,
     postgres_to_csv
@@ -42,7 +42,7 @@ def test_timestamp_functionality():
     assert list['test_table'].isoformat() == current_timestamp
 
 
-@patch('src.lambda_ingestion.ingestion.connect')
+@patch('src.lambda_ingestion.ingestion_lambda.connect')
 def test_extract_table_to_csv_concats_query_result_to_csv(mock_connection):
     mock_db = Mock()
     mock_connection.return_value.__enter__.return_value = mock_db
@@ -64,7 +64,7 @@ def test_extract_table_to_csv_concats_query_result_to_csv(mock_connection):
 
 
 @mock_s3
-@patch('src.lambda_ingestion.ingestion.connect')
+@patch('src.lambda_ingestion.ingestion_lambda.connect')
 def test_csv_data_has_no_headers_if_csv_already_in_s3(mock_connection):
     expected = "transaction_id,transaction_type,last_updated\r\n"
     expected += f"434,SALE,{current_timestamp}\r\n"
@@ -95,7 +95,7 @@ def test_csv_data_has_no_headers_if_csv_already_in_s3(mock_connection):
 
 
 @mock_s3
-@patch('src.lambda_ingestion.ingestion.connect')
+@patch('src.lambda_ingestion.ingestion_lambda.connect')
 def test_new_csvdata_appended_to_s3_csv(mock_connection):
     expected = "transaction_id,transaction_type,last_updated\r\n"
     expected += f"434,SALE,{current_timestamp}\r\n"
