@@ -12,6 +12,4 @@ def ingestion_lambda_handler(event,context):
         logging.error(f'Invalid Credentials Error: {error}')
     except Exception as e:
         logging.error(f'An unexpected error occured: {e}')
-    
-
 
