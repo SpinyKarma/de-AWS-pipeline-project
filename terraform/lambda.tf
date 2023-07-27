@@ -24,4 +24,5 @@ resource "aws_lambda_function" "ingestion_lambda" {
   handler       = "ingestion_lambda.ingestion_lambda_handler"
   #handler may need to be "lambda_ingestion.lambda.ingestion_lambda_handler"
   runtime = "python3.10"
+  timeout = "60"
 }
