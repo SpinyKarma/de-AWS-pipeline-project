@@ -3,7 +3,21 @@ import pg8000.native as pg8000
 import boto3
 import csv
 from datetime import datetime as dt
+from pprint import pprint
+from io import StringIO
+import csv
 current_timestamp = dt.now()
+
+csv_names = [
+    'staff',
+    'counterparty',
+    'sales_order',
+    'address',
+    'payment',
+    'purchase_order',
+    'payment_type',
+    'transaction',
+]
 
 
 def get_ingestion_bucket_name():
@@ -24,8 +38,8 @@ class InvalidCredentialsError (Exception):
 
 
 def get_credentials():
-    """
-        Loads our DB credentials using AWS secrets
+    """Loads our DB credentials using AWS secrets.
+
         Returns:
             a credentials dictionary containing:
             - username
@@ -33,11 +47,12 @@ def get_credentials():
             - hostname
             - db
             - port
-        Throws:
-            InvalidCredentialsError if the keys of the dictionary are invalid
+
+        Raises:
+            InvalidCredentialsError if the keys of the dictionary are invalid.
     """
 
-    secretsmanager = boto3.client('secretsmanager', region_name='eu-west-2')
+    secretsmanager = boto3.client('secretsmanager')
     secret_name = 'Ingestion_credentials'
     credentials_response = secretsmanager.get_secret_value(
         SecretId=secret_name
@@ -52,9 +67,7 @@ def get_credentials():
 
 
 def connect():
-    """
-        Will return a connection to the DB
-    """
+    """Will return a connection to the DB."""
     credentials = get_credentials()
 
     return pg8000.Connection(
@@ -67,9 +80,7 @@ def connect():
 
 
 class CsvBuilder:
-    """
-        For creating CSV without writing to a file
-    """
+    """For creating CSV without writing to a file."""
 
     def __init__(self):
         self.rows = []
@@ -81,114 +92,108 @@ class CsvBuilder:
         return ''.join(self.rows)
 
 
-def get_last_ingestion_timestamps():
+def get_ingestion_timestamps(Bucket, table_list):
+    '''Extracts the most recent last_updated of each csv in the passed bucket.
+
+    Args:
+        Bucket: Name of the bucket to pull metadata from.
+
+        table_list: A list of the table names to perform the function on.
+
+    Returns:
+        last_ingestion_timestamps: A dict with the name of the object as the
+        key and the extracted timestamp as the value.
+    '''
     last_ingestion_timestamps = {}
-    # list objects in s3 bucket
-    s3_client = boto3.client('s3')
-    response = s3_client.list_objects_v2(Bucket=INGESTION_BUCKET_NAME)
-    # iterate thru objects and get metatdata
-    if 'Contents' in response:
-        for obj in response['Contents']:
-            key = obj['Key']
-    # retrieve last ingestion timestamp metadata
-            last_ingestion_timestamp = obj.get(
-                'Metadata', {}).get('LastIngestionTimestamp')
-            if last_ingestion_timestamp:
-                last_ingestion_timestamp[key[:-4]] = last_ingestion_timestamp
+    s3_client = boto3.client("s3")
+    for file in table_list:
+        key = file + ".csv"
+        try:
+            response = s3_client.get_object(
+                Bucket=Bucket,
+                Key=key
+            )
+            csv_body = response.get('Body')
+            content_str = csv_body.read().decode()
+            f = StringIO(content_str)
+            reader = list(csv.reader(f, delimiter=','))
+            timestamp_index = reader[0].index("last_updated")
+            last_updated = reader[-1][timestamp_index]
+            last_ingestion_timestamps[file] = dt.fromisoformat(last_updated)
+        except s3_client.exceptions.NoSuchKey:
+            last_ingestion_timestamps[file] = dt(1970, 1, 1)
     return last_ingestion_timestamps
 
 
-def set_last_ingestion_timestamps(last_ingestion_timestamps):
-    s3_client = boto3.client('s3')
-    response = s3_client.list_objects_v2(Bucket=INGESTION_BUCKET_NAME)
-    # iterate thru objects and updata metatdata
-    if 'Contents' in response:
-        for obj in response['Contents']:
-            key = obj['Key']
-    # get the table name witout '.csv' extension
-            table_name = key[:-4]
-            # check if table exists in last_ingestion_timestamps
-            if table_name in last_ingestion_timestamps:
-                # update metadata for s3 object
-                s3_client.copy_object(
-                    Bucket=INGESTION_BUCKET_NAME,
-                    CopySource={'Bucket': INGESTION_BUCKET_NAME, 'Key': key},
-                    Key=key,
-                    Metadata={
-                        'LastIngestionTimestamp': current_timestamp
-                        .isoformat()},
-                    MetadataDirective='REPLACE'
-                )
+def extract_table_to_csv(table_name, timestamp):
+    '''Runs a query on the given table filtered by the given timestamp.
 
+    Args:
+        table_name: The name of the table to query.
 
-def extract_table_to_csv(table_name, last_run_timestamp):
-    try:
-        """
-            Grab all the data from the database
-        """
-        with connect() as db:
-            result = db.run(f'SELECT * FROM {pg8000.identifier(table_name)} ;')
-            column_names = [column['name'] for column in db.columns]
-            rows = [dict(zip(column_names, row)) for row in result]
+        timestamp: A datetime.datetime object, all entries with a last_updated
+        key more recent than this will be pulled from the table.
 
-        """
-            Convert that data to a CSV form, and write it to the disk
-        """
+    Returns:
+        csv_text: A csv formatted string, if the csv file does not exist
+        in the s3 bucket then this includes headers, otherwise it does not
+        include headers.
+    '''
+
+    with connect() as db:
+        query_str = f'SELECT * FROM {pg8000.identifier(table_name)} WHERE '
+        query_str += f'last_updated > {pg8000.literal(timestamp.isoformat())};'
+        result = db.run(query_str)
+        column_names = [column['name'] for column in db.columns]
+        rows = [dict(zip(column_names, row)) for row in result]
         csv_builder = CsvBuilder()
         csv_writer = csv.DictWriter(csv_builder, fieldnames=column_names)
-        csv_writer.writeheader()
+        if timestamp.year == 1970:
+            csv_writer.writeheader()
         csv_writer.writerows(rows)
-        return csv_builder.as_txt()
-
-    except Exception as e:
-        print(f"Error extracting data from {table_name}: {e}")
+        csv_text = csv_builder.as_txt()
+        return csv_text
 
 
-def postgres_to_csv(last_ingestion_timestamps):
-    table_names = [
-        'staff',
-        'counterparty',
-        'sales_order',
-        'address',
-        'payment',
-        'purchase_order',
-        'payment_type',
-        'transaction',
-    ]
+def postgres_to_csv(Bucket, table_list):
+    '''Extracts new csv data from each table and appends to files in bucket.
 
-    table_name_to_csv = {}
+    Queries each table in the database and writes the contents to a csv file
+    in the S3 bucket. If the csv file already exists and there is new data in
+    the tables, then appends the new data to the csvs.
 
-    for table_name in table_names:
-        last_ingestion_timestamp = last_ingestion_timestamps.get(table_name)
-        print(f'Ingesting {table_name}...')
-        csv = extract_table_to_csv(table_name, last_ingestion_timestamp)
-        if csv:
-            table_name_to_csv[table_name] = csv
-            print(f'Ingestion of {table_name} is complete')
+    Args:
+        Bucket: Name of the bucket to modify the csvs of.
+
+        table_list: A list of the table names to perform the function on.
+
+    Returns:
+        None
+
+    Side-effects:
+        Updates the S3 csvs with new data.
+    '''
+    s3_client = boto3.client("s3")
+    timestamp_dict = get_ingestion_timestamps(Bucket, table_list)
+
+    for table in timestamp_dict:
+        timestamp = timestamp_dict[table]
+        output_csv = extract_table_to_csv(table, timestamp)
+        if timestamp.year == 1970:
+            s3_client.put_object(
+                Body=output_csv,
+                Bucket=Bucket,
+                Key=f'{table}.csv',
+                ContentType='application/text'
+            )
         else:
-            raise TableIngestionError(table_name)
-
-    print('OK')
-    return table_name_to_csv
-
-
-def ingest(s3_client):
-    last_ingestion_timestamps = get_last_ingestion_timestamps()
-    table_csv = postgres_to_csv(last_ingestion_timestamps)
-    for table_name in table_csv.keys():
-        csv_data = table_csv[table_name]
-        s3_client.put_object(
-            Body=csv_data,
-            Bucket=INGESTION_BUCKET_NAME,
-            Key=f'{table_name}.csv',
-            ContentType='application/text'
-        )
-    last_ingestion_timestamps = {
-        table_name: current_timestamp.isoformat()
-        for table_name in table_csv.keys()}
-    set_last_ingestion_timestamps(last_ingestion_timestamps)
-
-
-if __name__ == '__main__':
-    s3_client = boto3.client('s3')
-    ingest(s3_client)
+            response = s3_client.get_object(Bucket=Bucket, Key=f'{table}.csv')
+            csv_body = response.get('Body')
+            content_str = csv_body.read().decode()
+            new_body = content_str+output_csv
+            s3_client.put_object(
+                Body=new_body,
+                Bucket=Bucket,
+                Key=f'{table}.csv',
+                ContentType='application/text'
+            )
