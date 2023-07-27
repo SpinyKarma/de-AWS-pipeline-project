@@ -2,24 +2,15 @@
 ####  POLICY CREATION  ####
 ###########################
 
-data "aws_iam_policy_document" "s3_write_policy_document" {
+data "aws_iam_policy_document" "s3_policy_document" {
   statement {
 
-    actions = ["s3:PutObject"]
-
-    resources = [
-      "${aws_s3_bucket.raw_csv_data_bucket.arn}/*",
+    actions = ["s3:*",
+      "s3-object-lambda:*"
     ]
-  }
-}
-
-data "aws_iam_policy_document" "s3_read_policy_document" {
-  statement {
-
-    actions = ["s3:ListAllMyBuckets", "s3:ListBucket"]
 
     resources = [
-      "${aws_s3_bucket.raw_csv_data_bucket.arn}/*",
+      "*"
     ]
   }
 }
@@ -46,14 +37,9 @@ data "aws_iam_policy_document" "cw_ingestion_write_policy_document" {
   }
 }
 
-resource "aws_iam_policy" "s3_write_policy" {
-  name_prefix = "s3-write-policy-"
-  policy      = data.aws_iam_policy_document.s3_write_policy_document.json
-}
-
-resource "aws_iam_policy" "s3_read_policy" {
-  name_prefix = "s3-read-policy-"
-  policy      = data.aws_iam_policy_document.s3_read_policy_document.json
+resource "aws_iam_policy" "s3_policy" {
+  name_prefix = "s3-policy-"
+  policy      = data.aws_iam_policy_document.s3_policy_document.json
 }
 
 resource "aws_iam_policy" "secret_read_policy" {
@@ -94,12 +80,7 @@ resource "aws_iam_role" "ingestion_lambda_role" {
 
 resource "aws_iam_role_policy_attachment" "ingestion_s3_write_policy_attachment" {
   role       = aws_iam_role.ingestion_lambda_role.name
-  policy_arn = aws_iam_policy.s3_write_policy.arn
-}
-
-resource "aws_iam_role_policy_attachment" "ingestion_s3_read_policy_attachment" {
-  role       = aws_iam_role.ingestion_lambda_role.name
-  policy_arn = aws_iam_policy.s3_read_policy.arn
+  policy_arn = aws_iam_policy.s3_policy.arn
 }
 
 resource "aws_iam_role_policy_attachment" "ingestion_secret_read_policy_attachment" {
