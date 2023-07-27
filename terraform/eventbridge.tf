@@ -2,6 +2,7 @@ resource "aws_cloudwatch_event_rule" "ingestion_lambda_rule" {
     name="ingestion_lambda_rule"
     schedule_expression = "rate(3 minutes)"
 }
+
 # resource "aws_cloudwatch_event_target" "ingestion_lambda_target" {
 #   rule=aws_cloudwatch_event_rule.ingestion_lambda_rule.name
 #   target_id = "SendToLambda"
