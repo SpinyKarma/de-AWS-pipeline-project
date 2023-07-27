@@ -17,7 +17,7 @@ resource "aws_s3_object" "lambda_code" {
 }
 
 resource "aws_lambda_function" "ingestion_lambda" {  
-  filename = "./src/lambda_ingestion/lambda.py"
+  filename = "../src/lambda_ingestion/lambda.py"
   function_name = "ingestion_lambda_handler"
   role = aws_iam_role.ingestion_lambda_role.arn
   
