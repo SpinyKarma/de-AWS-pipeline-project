@@ -4,7 +4,7 @@ locals {
 
 data "archive_file" "lambda_zip" {
   type        = "zip"
-  source_file = "${path.module}/../src/lambda_ingestion/ingestion_lambda.py"
+  source_dir = "${path.module}/../src/lambda_ingestion"
   output_path = "${path.module}/../lambda_ingestion.zip"
 }
 
