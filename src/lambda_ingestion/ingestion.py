@@ -197,7 +197,3 @@ def postgres_to_csv(Bucket, table_list):
                 Key=f'{table}.csv',
                 ContentType='application/text'
             )
-
-
-if __name__ == "__main__":
-    extract_table_to_csv("staff", dt(1970, 1, 1))
