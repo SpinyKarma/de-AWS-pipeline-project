@@ -15,3 +15,12 @@ resource "aws_s3_object" "lambda_code" {
 
     source = data.archive_file.lambda_zip.output_path
 }
+
+resource "aws_lambda_function" "ingestion_lambda" {  
+  filename = "./src/lambda_ingestion/lambda.py"
+  function_name = "ingestion_lambda_handler"
+  role = aws_iam_role.ingestion_lambda_role.arn
+  
+  handler = "ingestion_lambda_handler"
+  runtime = "python3.10"
+}
