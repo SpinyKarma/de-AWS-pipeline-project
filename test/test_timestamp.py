@@ -1,7 +1,7 @@
 from datetime import datetime as dt
 import boto3
 from moto import mock_s3  # , ingest
-from src.ingestion import get_last_ingestion_timestamps, set_last_ingestion_timestamps
+from src.lambda_ingestion.ingestion import get_last_ingestion_timestamps, set_last_ingestion_timestamps
 # function returning a sample csv string for testing
 
 
