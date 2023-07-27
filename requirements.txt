@@ -12,7 +12,6 @@ cramjam==2.6.2
 cryptography==41.0.2
 distlib==0.3.7
 dparse==0.6.3
-fastparquet==2023.7.0
 filelock==3.12.2
 flake8==6.0.0
 fsspec==2023.6.0
@@ -32,6 +31,8 @@ pbr==5.11.1
 pg8000==1.29.8
 platformdirs==3.9.1
 pluggy==1.2.0
+ply==3.11
+pyarrow==12.0.1
 pycodestyle==2.10.0
 pycparser==2.21
 pyflakes==3.0.1
@@ -50,6 +51,7 @@ scramp==1.4.4
 six==1.16.0
 smmap==5.0.0
 stevedore==5.1.0
+thriftpy2==0.4.16
 types-PyYAML==6.0.12.11
 tzdata==2023.3
 urllib3==1.26.16
