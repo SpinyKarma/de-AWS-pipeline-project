@@ -152,20 +152,22 @@ def extract_table_to_csv(table_name, timestamp):
         in the s3 bucket then this includes headers, otherwise it does not
         include headers.
     '''
-
-    with connect() as db:
-        query_str = f'SELECT * FROM {pg8000.identifier(table_name)} WHERE '
-        query_str += f'last_updated > {pg8000.literal(timestamp.isoformat())};'
-        result = db.run(query_str)
-        column_names = [column['name'] for column in db.columns]
-        rows = [dict(zip(column_names, row)) for row in result]
-        csv_builder = CsvBuilder()
-        csv_writer = csv.DictWriter(csv_builder, fieldnames=column_names)
-        if timestamp.year == 1970:
-            csv_writer.writeheader()
-        csv_writer.writerows(rows)
-        csv_text = csv_builder.as_txt()
-        return csv_text
+    try:
+        with connect() as db:
+            query_str = f'SELECT * FROM {pg8000.identifier(table_name)} WHERE '
+            query_str += f'last_updated > {pg8000.literal(timestamp.isoformat())};'
+            result = db.run(query_str)
+            column_names = [column['name'] for column in db.columns]
+            rows = [dict(zip(column_names, row)) for row in result]
+            csv_builder = CsvBuilder()
+            csv_writer = csv.DictWriter(csv_builder, fieldnames=column_names)
+            if timestamp.year == 1970:
+                csv_writer.writeheader()
+            csv_writer.writerows(rows)
+            csv_text = csv_builder.as_txt()
+            return csv_text
+    except:
+        raise TableIngestionError
 
 
 def postgres_to_csv(Bucket, table_list):
