@@ -3,7 +3,6 @@ import pg8000.native as pg8000
 import boto3
 import csv
 from datetime import datetime as dt
-from pprint import pprint
 from io import StringIO
 import csv
 current_timestamp = dt.now()
@@ -21,12 +20,14 @@ csv_names = [
 
 
 def get_ingestion_bucket_name():
-    name = 'terrific-totes-ingestion-bucket'
-    name += '20230725102602583400000001'
+    '''Gets the name of the bucket to store raw data in using the prefix.'''
+    prefix = 'terrific-totes-ingestion-bucket'
+    buckets = boto3.client("s3").list_buckets().get("Buckets")
+    for bucket in buckets:
+        if prefix in bucket["Name"]:
+            name = bucket["Name"]
+            break
     return name
-
-
-INGESTION_BUCKET_NAME = get_ingestion_bucket_name()
 
 
 class TableIngestionError(Exception):
@@ -37,37 +38,49 @@ class InvalidCredentialsError (Exception):
     pass
 
 
-def get_credentials():
-    """Loads our DB credentials using AWS secrets.
+def get_credentials(secret_name='Ingestion_credentials'):
+    """Loads a set of DB credentials using a secret stored in AWS secrets.
+
+        Args:
+            secet_name: The name of the secret to extract credentials from, 
+            defaults to Ingestion_credentials. Also takes Warehouse_credentials
 
         Returns:
-            a credentials dictionary containing:
+            credentials: A dictionary containing:
             - username
             - password
             - hostname
-            - db
             - port
+            Additionally contains:
+            - db, if secret_name = Ingestion_credentials
+            - schema, if secret_name = Warehouse_credentials
 
         Raises:
             InvalidCredentialsError if the keys of the dictionary are invalid.
     """
 
     secretsmanager = boto3.client('secretsmanager')
-    secret_name = 'Ingestion_credentials'
     credentials_response = secretsmanager.get_secret_value(
         SecretId=secret_name
     )
     credentials = json.loads(credentials_response['SecretString'])
-    required_keys = ['hostname', 'port', 'db', 'username', 'password']
+    required_keys = {
+        "Ingestion_credentials": [
+            'hostname', 'port', "db", 'username', 'password'
+        ],
+        "Warehouse_credentials": [
+            'hostname', 'port', "schema", 'username', 'password'
+        ]
+    }
 
-    if list(credentials.keys()) != required_keys:
+    if list(credentials.keys()) != required_keys[secret_name]:
         raise InvalidCredentialsError(credentials)
 
     return credentials
 
 
 def connect():
-    """Will return a connection to the DB."""
+    """Will return a connection to the DB, to be used with context manager."""
     credentials = get_credentials()
 
     return pg8000.Connection(

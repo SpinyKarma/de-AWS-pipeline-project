@@ -5,32 +5,37 @@ import src.converter as converter
 def test_convert_warehouse_credentials_raises_Error_on_null_credential():
     with pytest.raises(converter.NullCredentialsError):
         converter.convert_warehouse_credentials(
-            None, "schema", "user", "password"
-            )
+            None, "port", "schema", "user", "password"
+        )
 
     with pytest.raises(converter.NullCredentialsError):
         converter.convert_warehouse_credentials(
-            "port", None, "user", "password"
-            )
+            "hostname", None, "schema", "user", "password"
+        )
 
     with pytest.raises(converter.NullCredentialsError):
         converter.convert_warehouse_credentials(
-            "port", "schema", None, "password"
-            )
+            "hostname", "port", None, "user", "password"
+        )
 
     with pytest.raises(converter.NullCredentialsError):
         converter.convert_warehouse_credentials(
-            "port", "schema", "user", None
-            )
+            "hostname", "port", "schema", None, "password"
+        )
+
+    with pytest.raises(converter.NullCredentialsError):
+        converter.convert_warehouse_credentials(
+            "hostname", "port", "schema", "user", None
+        )
 
 
 def test_convert_warehouse_credentials_returns_valid_json():
-    example = '{"port": "1234", "schema": "exampleschema", '
-    example += '"user": "exampleuser", "password": "examplepassword"}'
+    example = '{"hostname": "banana", "port": "1234", "schema": "example'
+    example += 'schema", "user": "exampleuser", "password": "examplepassword"}'
 
     assert (
         converter.convert_warehouse_credentials(
-            "1234", "exampleschema", "exampleuser", "examplepassword"
+            "banana", "1234", "exampleschema", "exampleuser", "examplepassword"
         )
         == example
     )
