@@ -4,7 +4,7 @@ locals {
 
 data "archive_file" "lambda_zip" {
   type        = "zip"
-  source_dir = "${path.module}/../src/lambda_ingestion"
+  source_dir  = "${path.module}/../src/lambda_ingestion"
   output_path = "${path.module}/../lambda_ingestion.zip"
 }
 
@@ -17,7 +17,8 @@ resource "aws_s3_object" "lambda_code" {
 }
 
 resource "aws_lambda_function" "ingestion_lambda" {
-  filename      = "../lambda_ingestion.zip"
+  s3_bucket     = aws_s3_bucket.code_bucket.bucket
+  s3_key        = "lambda_ingestion.zip"
   function_name = "ingestion_lambda_handler"
   role          = aws_iam_role.ingestion_lambda_role.arn
   handler       = "ingestion_lambda.ingestion_lambda_handler"
