@@ -27,10 +27,13 @@ def ingestion_lambda_handler(event, context):
         postgres_to_csv(buckey_name, table_names)
     except TableIngestionError as error:
         logging.error(f'Table Ingestion Error: {error}')
+        raise error
     except InvalidCredentialsError as error:
         logging.error(f'Invalid Credentials Error: {error}')
-    except Exception as e:
-        logging.error(f'An unexpected error occured: {e}')
+        raise error
+    except Exception as error:
+        logging.error(f'An unexpected error occured: {error}')
+        raise error
 
 
 def get_ingestion_bucket_name():
