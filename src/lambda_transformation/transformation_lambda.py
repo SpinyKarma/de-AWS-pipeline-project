@@ -94,7 +94,7 @@ def process_to_parquet(thread_index, csv_name):
     logging.info(f'CSV to Parquet conversion finished for {csv_name}')
 
 
-def lambda_handler(event, context):
+def transformation_lambda_handler(event, context):
     s3 = boto3.client('s3', region_name='eu-west-2')
 
     """
