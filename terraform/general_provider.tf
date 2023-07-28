@@ -1,3 +1,7 @@
+####################
+####  PROVIDER  ####
+####################
+
 terraform {
   required_providers {
     aws = {
@@ -13,8 +17,18 @@ terraform {
   }
 }
 
-
-
 provider "aws" {
   region = "eu-west-2"
+}
+
+################
+####  VARS  ####
+################
+
+data "aws_caller_identity" "current" {
+
+}
+
+data "aws_region" "current" {
+
 }
