@@ -24,20 +24,20 @@ resource "aws_iam_role" "transformation_lambda_role" {
     EOF
 }
 
-# resource "aws_iam_role_policy_attachment" "transformation_s3_write_policy_attachment" {
-#   role       = aws_iam_role.transformation_lambda_role
-#   policy_arn = aws_iam_policy.s3_policy.arn
-# }
+resource "aws_iam_role_policy_attachment" "trans_s3_write_policy_attachment" {
+  role       = aws_iam_role.transformation_lambda_role.name
+  policy_arn = aws_iam_policy.s3_policy.arn
+}
 
-# resource "aws_iam_role_policy_attachment" "transformation_secret_read_policy_attachment" {
-#   role       = aws_iam_role.transformation_lambda_role.name
-#   policy_arn = aws_iam_policy.secret_read_policy.arn
-# }
+resource "aws_iam_role_policy_attachment" "transformation_secret_read_policy_attachment" {
+  role       = aws_iam_role.transformation_lambda_role.name
+  policy_arn = aws_iam_policy.secret_read_policy.arn
+}
 
-# resource "aws_iam_role_policy_attachment" "transformation_cw_write_policy_attachment" {
-#   role       = aws_iam_role.transformation_lambda_role.name
-#   policy_arn = aws_iam_policy.cw_write_policy.arn
-# }
+resource "aws_iam_role_policy_attachment" "transformation_cw_write_policy_attachment" {
+  role       = aws_iam_role.transformation_lambda_role.name
+  policy_arn = aws_iam_policy.cw_write_policy.arn
+}
 
 
 ######################
