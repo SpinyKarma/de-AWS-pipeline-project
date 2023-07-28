@@ -1,6 +1,7 @@
 import pandas as pd
 from pprint import pprint
 import boto3
+import csv
 
 
 def get_ingestion_bucket_name():
@@ -9,21 +10,38 @@ def get_ingestion_bucket_name():
     return name
 
 
-def read_csv():
+def response_to_data_frame(response):
+    """
+        This funtion will convert get_object response for a CSV file
+        into a Pandas DataFrame
+    """
+
+    body_reader = response['Body']
+    body = body_reader.read().decode('utf-8').splitlines()
+    csv_reader = csv.DictReader(body)
+    rows = []
+
+    for data in csv_reader:
+        rows.append(data)
+
+    return pd.DataFrame.from_dict(rows)
+
+
+def read_csv_as_dataframes():
     s3 = boto3.client('s3')
 
-    staff_obj = s3.get_object(
+    staff_response = s3.get_object(
         Bucket=get_ingestion_bucket_name(),
         Key='staff.csv')
 
-    departments_obj = s3.get_object(
+    departments_response = s3.get_object(
         Bucket=get_ingestion_bucket_name(),
         Key='department.csv')
 
-    staff_csv = staff_obj['Body'].read()
-    departments_csv = staff_obj['Body'].read()
-
-    print(staff_csv)
+    return {
+        'staff': response_to_data_frame(staff_response),
+        'department': response_to_data_frame(departments_response)
+    }
 
 
 def gen_dim_staff(
@@ -45,11 +63,21 @@ def gen_dim_staff(
         TODO
     """
 
-    staff = staff_dataframe.to_dict()
-    department = department_dataframe.to_dict()
+    staff_dict = staff_dataframe.to_dict()
+    department_dict = department_dataframe.to_dict()
+    dim_staff = {}
 
-    pprint(staff)
-    pprint(department)
+    """
+        TODO: Process staff_dict and department_dict
+        into dim_staff dict to be converted into a CSV
+    """
+
+    pprint(staff_dict)
+    pprint(department_dict)
 
 
-read_csv()
+# Testing:
+dataframes = read_csv_as_dataframes()
+
+gen_dim_staff(staff_dataframe=dataframes['staff'],
+              department_dataframe=dataframes['department'])
