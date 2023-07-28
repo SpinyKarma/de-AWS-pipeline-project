@@ -57,18 +57,18 @@ locals {
   lambda_path = "../src/lambda_ingestion"
 }
 
-data "archive_file" "lambda_zip" {
+data "archive_file" "ingestion_lambda_zip" {
   type        = "zip"
   source_dir  = "${path.module}/../src/lambda_ingestion"
   output_path = "${path.module}/../lambda_ingestion.zip"
 }
 
-resource "aws_s3_object" "lambda_code" {
+resource "aws_s3_object" "ingestion_lambda_code" {
   bucket = aws_s3_bucket.code_bucket.bucket
   key    = "lambda_ingestion.zip"
   acl    = "private"
 
-  source = data.archive_file.lambda_zip.output_path
+  source = data.archive_file.ingestion_lambda_zip.output_path
 }
 
 resource "aws_lambda_function" "ingestion_lambda" {

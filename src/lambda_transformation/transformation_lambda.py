@@ -68,7 +68,7 @@ def process_to_parquet(thread_index, csv_name):
     print(f'{csv_name} has completed processing')
 
 
-def lambda_handler(event, context):
+def transformation_lambda_handler(event, context):
     s3 = boto3.client('s3', region_name='eu-west-2')
 
     """
