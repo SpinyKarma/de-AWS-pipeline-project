@@ -1,5 +1,5 @@
 import pytest
-import src.lambda_ingestion.ingestion as i
+import src.lambda_ingestion.ingestion_lambda as i
 from moto import mock_secretsmanager
 import boto3
 
@@ -78,35 +78,3 @@ def test_csv_builder():
     builder.write('second\n')
     builder.write('third\n')
     assert builder.as_txt() == 'first\nsecond\nthird\n'
-
-
-"""
-@mock_s3
-def test_ingest_writes_to_bucket():
-    client = boto3.client('s3')
-    client.create_bucket(
-        Bucket=i.get_ingestion_bucket_name(),
-        CreateBucketConfiguration={'LocationConstraint': 'eu-west-2'}
-    )
-
-    table_names = [
-        'staff',
-        'counterparty',
-        'sales_order',
-        'address',
-        'payment',
-        'purchase_order',
-        'payment_type',
-        'transaction',
-    ]
-
-    keys = [f'{tablename}.csv' for tablename in table_names]
-
-    i.ingest(client)
-
-    for key in keys:
-        print(client.get_object(Key=key))
-
-
-    test_ingest_writes_to_bucket()
-"""

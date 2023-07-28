@@ -79,6 +79,7 @@ def process_to_parquet(thread_index, csv_name):
     spreadsheet_name = csv_name[0:-4] + '.parquet'
     s3 = boto3.client('s3')
     response = s3.get_object(Bucket=get_ingestion_bucket_name(), Key=csv_name)
+
     data_frame = response_to_data_frame(response)
     parquet_data = data_frame.to_parquet(engine='pyarrow')
 
@@ -123,7 +124,7 @@ def lambda_handler(event, context):
         grab our processed data:
     """
     csv_names = get_csv_names(s3)
-    max_workers = 4
+    max_workers = len(csv_names)
 
     times = []
     times.append(time.perf_counter())
