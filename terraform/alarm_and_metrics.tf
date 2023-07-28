@@ -1,6 +1,6 @@
 resource "aws_cloudwatch_log_metric_filter" "table_ingestion_error_metric" {
   name           = "table_ingestion_error_metric"
-  pattern        = "Table Ingestion Error"
+  pattern        = "TableIngestionError"
   log_group_name = "/aws/lambda/${aws_lambda_function.ingestion_lambda.function_name}"
 
   metric_transformation {
@@ -25,7 +25,7 @@ resource "aws_cloudwatch_metric_alarm" "table_ingestion_error_alarm" {
 
 resource "aws_cloudwatch_log_metric_filter" "invalid_credentials_error_metric" {
   name           = "invalid_credentials_error_metric"
-  pattern        = "Invalid Credentials Error"
+  pattern        = "InvalidCredentialsError"
   log_group_name = "/aws/lambda/${aws_lambda_function.ingestion_lambda.function_name}"
 
   metric_transformation {
@@ -62,7 +62,7 @@ resource "aws_cloudwatch_log_metric_filter" "ingestion_end" {
 
 resource "aws_cloudwatch_log_metric_filter" "exception_error_metric" {
   name           = "exception_error"
-  pattern        = "unexpected error"
+  pattern        = "Exception"
   log_group_name = "/aws/lambda/${aws_lambda_function.ingestion_lambda.function_name}"
 
   metric_transformation {
