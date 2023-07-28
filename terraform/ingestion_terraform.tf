@@ -60,11 +60,11 @@ data "archive_file" "ingestion_lambda_zip" {
 }
 
 resource "aws_s3_object" "ingestion_lambda_code" {
-  bucket = aws_s3_bucket.code_bucket.bucket
-  key    = "lambda_ingestion.zip"
-  acl    = "private"
-  source = data.archive_file.ingestion_lambda_zip.output_path
-  etag   = data.archive_file.ingestion_lambda_zip.output_base64sha256
+  bucket      = aws_s3_bucket.code_bucket.bucket
+  key         = "lambda_ingestion.zip"
+  acl         = "private"
+  source      = data.archive_file.ingestion_lambda_zip.output_path
+  source_hash = data.archive_file.ingestion_lambda_zip.output_base64sha256
 }
 
 resource "aws_lambda_function" "ingestion_lambda" {
