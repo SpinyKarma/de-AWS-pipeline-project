@@ -22,6 +22,9 @@ def ingestion_lambda_handler(event, context):
             'purchase_order',
             'payment_type',
             'transaction',
+            'currency',
+            'department',
+            'design'
         ]
         buckey_name = get_ingestion_bucket_name()
         postgres_to_csv(buckey_name, table_names)
