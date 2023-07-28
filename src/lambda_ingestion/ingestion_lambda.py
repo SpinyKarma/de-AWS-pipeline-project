@@ -9,6 +9,10 @@ import csv
 current_timestamp = dt.now()
 
 
+def get_current_timestamp():
+    return current_timestamp
+
+
 def ingestion_lambda_handler(event, context):
     '''
     '''
@@ -34,6 +38,10 @@ def ingestion_lambda_handler(event, context):
     except InvalidCredentialsError as error:
         logging.error(f'Invalid Credentials Error: {error}')
         raise error
+    except NonTimestampedCSVError as error:
+        logging.error(
+            f'A CSV is in the bucket without a timestamp, remove all non-timestamped CSVs: {error}')
+        raise error
     except Exception as error:
         logging.error(f'An unexpected error occured: {error}')
         raise error
@@ -51,6 +59,10 @@ def get_ingestion_bucket_name():
 
 
 class TableIngestionError(Exception):
+    pass
+
+
+class NonTimestampedCSVError(Exception):
     pass
 
 
@@ -99,17 +111,28 @@ def get_credentials(secret_name='Ingestion_credentials'):
     return credentials
 
 
-def connect():
+def connect(db="ingestion"):
     """Will return a connection to the DB, to be used with context manager."""
-    credentials = get_credentials()
+    if db == "warehouse":
+        credentials = get_credentials("Warehouse_credentials")
 
-    return pg8000.Connection(
-        user=credentials['username'],
-        password=credentials['password'],
-        host=credentials['hostname'],
-        database=credentials['db'],
-        port=credentials['port']
-    )
+        return pg8000.Connection(
+            user=credentials['username'],
+            password=credentials['password'],
+            host=credentials['hostname'],
+            schema=credentials['schema'],
+            port=credentials['port']
+        )
+    else:
+        credentials = get_credentials()
+
+        return pg8000.Connection(
+            user=credentials['username'],
+            password=credentials['password'],
+            host=credentials['hostname'],
+            database=credentials['db'],
+            port=credentials['port']
+        )
 
 
 class CsvBuilder:
@@ -125,37 +148,27 @@ class CsvBuilder:
         return ''.join(self.rows)
 
 
-def get_ingestion_timestamps(Bucket, table_list):
-    '''Extracts the most recent last_updated of each csv in the passed bucket.
+def get_last_ingestion_timestamp(Bucket):
+    '''Extracts the timestamp of the most recently added csv.
 
     Args:
-        Bucket: Name of the bucket to pull metadata from.
-
-        table_list: A list of the table names to perform the function on.
+        Bucket: Name of the bucket to pull csvs from.
 
     Returns:
-        last_ingestion_timestamps: A dict with the name of the object as the
-        key and the extracted timestamp as the value.
+        last_timestamp: The timestamp from the most recently added
+        csv, defaults to 1st Jan 1970 if no csvs in file.
     '''
-    last_ingestion_timestamps = {}
     s3_client = boto3.client("s3")
-    for file in table_list:
-        key = file + ".csv"
-        try:
-            response = s3_client.get_object(
-                Bucket=Bucket,
-                Key=key
-            )
-            csv_body = response.get('Body')
-            content_str = csv_body.read().decode()
-            f = StringIO(content_str)
-            reader = list(csv.reader(f, delimiter=','))
-            timestamp_index = reader[0].index("last_updated")
-            last_updated = reader[-1][timestamp_index]
-            last_ingestion_timestamps[file] = dt.fromisoformat(last_updated)
-        except s3_client.exceptions.NoSuchKey:
-            last_ingestion_timestamps[file] = dt(1970, 1, 1)
-    return last_ingestion_timestamps
+    try:
+        res = s3_client.list_objects_v2(Bucket=Bucket)['Contents']
+        names = [item['Key'] for item in res]
+        sorted_names = sorted(names, reverse=True)
+        last_timestamp = dt.fromisoformat(sorted_names[0].split("_")[0])
+        if last_timestamp.isoformat()[0].isalpha():
+            raise NonTimestampedCSVError
+        return last_timestamp
+    except KeyError:
+        return dt(1970, 1, 1)
 
 
 def extract_table_to_csv(table_name, timestamp):
@@ -181,7 +194,7 @@ def extract_table_to_csv(table_name, timestamp):
             rows = [dict(zip(column_names, row)) for row in result]
             csv_builder = CsvBuilder()
             csv_writer = csv.DictWriter(csv_builder, fieldnames=column_names)
-            if timestamp.year == 1970:
+            if rows != []:
                 csv_writer.writeheader()
             csv_writer.writerows(rows)
             csv_text = csv_builder.as_txt()
@@ -209,26 +222,24 @@ def postgres_to_csv(Bucket, table_list):
         Updates the S3 csvs with new data.
     '''
     s3_client = boto3.client("s3")
-    timestamp_dict = get_ingestion_timestamps(Bucket, table_list)
+    last_timestamp = get_last_ingestion_timestamp(Bucket)
 
-    for table in timestamp_dict:
-        timestamp = timestamp_dict[table]
-        output_csv = extract_table_to_csv(table, timestamp)
-        if timestamp.year == 1970:
+    for table in table_list:
+        output_csv = extract_table_to_csv(table, last_timestamp)
+        if output_csv != "":
             s3_client.put_object(
                 Body=output_csv,
                 Bucket=Bucket,
-                Key=f'{table}.csv',
+                Key=f'{current_timestamp.isoformat()}_{table}.csv',
                 ContentType='application/text'
             )
-        else:
-            response = s3_client.get_object(Bucket=Bucket, Key=f'{table}.csv')
-            csv_body = response.get('Body')
-            content_str = csv_body.read().decode()
-            new_body = content_str+output_csv
-            s3_client.put_object(
-                Body=new_body,
-                Bucket=Bucket,
-                Key=f'{table}.csv',
-                ContentType='application/text'
-            )
+
+
+# timestamp_1 = dt(1970, 1, 1)
+
+# timestamp_2 = dt(1970, 1, 3)
+# orig = [timestamp_2.isoformat(), timestamp_1.isoformat()]
+# sorted_orig = sorted(orig, reverse=True)
+# print(orig, sorted_orig)
+li = sorted([current_timestamp.isoformat() +
+            "_test.csv", "test.csv"], reverse=True)
