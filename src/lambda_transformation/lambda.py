@@ -75,17 +75,22 @@ def process_to_parquet(thread_index, csv_name):
         This function is asynchronous and so out-of-order results will happen
     """
 
-    print(f'I am processing thread: {csv_name}')
+    logging.info(f'CSV to Parquet conversion begun for {csv_name}')
     spreadsheet_name = csv_name[0:-4] + '.parquet'
     s3 = boto3.client('s3')
     response = s3.get_object(Bucket=get_ingestion_bucket_name(), Key=csv_name)
     data_frame = response_to_data_frame(response)
     parquet_data = data_frame.to_parquet(engine='pyarrow')
+
+    """
+        Put our parquet into the processed bucket
+    """
     s3.put_object(
         Bucket=get_processed_bucket_name(),
         Key=spreadsheet_name,
         Body=parquet_data
     )
+    logging.info(f'CSV to Parquet conversion finished for {csv_name}')
 
 
 def lambda_handler(event, context):
@@ -96,7 +101,7 @@ def lambda_handler(event, context):
     """
 
     if not is_processed_bucket_available(s3):
-        logging.error(
+        logging.critical(
             f'''
             error: the processed data bucket'
             {get_processed_bucket_name()}
@@ -105,7 +110,7 @@ def lambda_handler(event, context):
         return
 
     if not is_ingestion_bucket_available(s3):
-        logging.error(
+        logging.critical(
             f'''
             error: the ingestion bucket '
             {get_ingestion_bucket_name()}
@@ -118,7 +123,7 @@ def lambda_handler(event, context):
         grab our processed data:
     """
     csv_names = get_csv_names(s3)
-    max_workers = len(csv_names)
+    max_workers = 4
 
     times = []
     times.append(time.perf_counter())
@@ -130,5 +135,5 @@ def lambda_handler(event, context):
         executor.map(process_to_parquet, range(max_workers), csv_names)
 
     times.append(time.perf_counter())
-    print('Work has finished')
-    print('Seconds:', times[1] - times[0])
+    logging.info('Work has finished')
+    logging.debug('Seconds:', times[1] - times[0])
