@@ -53,10 +53,6 @@ resource "aws_cloudwatch_log_group" "ingestion_log_group" {
 ####  INGESTION LAMBDA  ####
 ############################
 
-# locals {
-#   lambda_path = "../src/lambda_ingestion"
-# }
-
 data "archive_file" "ingestion_lambda_zip" {
   type        = "zip"
   source_dir  = "${path.module}/../src/lambda_ingestion"

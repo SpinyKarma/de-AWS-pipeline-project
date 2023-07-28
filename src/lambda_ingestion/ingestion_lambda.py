@@ -233,13 +233,3 @@ def postgres_to_csv(Bucket, table_list):
                 Key=f'{current_timestamp.isoformat()}_{table}.csv',
                 ContentType='application/text'
             )
-
-
-# timestamp_1 = dt(1970, 1, 1)
-
-# timestamp_2 = dt(1970, 1, 3)
-# orig = [timestamp_2.isoformat(), timestamp_1.isoformat()]
-# sorted_orig = sorted(orig, reverse=True)
-# print(orig, sorted_orig)
-li = sorted([current_timestamp.isoformat() +
-            "_test.csv", "test.csv"], reverse=True)
