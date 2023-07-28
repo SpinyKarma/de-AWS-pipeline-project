@@ -59,3 +59,28 @@ resource "aws_cloudwatch_log_metric_filter" "ingestion_end" {
     value     = "1"
   }
 }
+
+resource "aws_cloudwatch_log_metric_filter" "exception_error_metric" {
+  name           = "exception_error"
+  pattern        = "unexpected error"
+  log_group_name = "/aws/lambda/${aws_lambda_function.ingestion_lambda.function_name}"
+
+  metric_transformation {
+    name      = "exception_Error_metric"
+    namespace = "exception_Error_metric"
+    value     = "1"
+  }
+}
+
+resource "aws_cloudwatch_metric_alarm" "exception_error_alarm" {
+  alarm_name                = "exception_Error_alarm"
+  comparison_operator       = "GreaterThanOrEqualToThreshold"
+  evaluation_periods        = 1
+  metric_name               = "exception_Error_metric"
+  namespace                 = "exception_Error_metric"
+  period                    = 60
+  statistic                 = "Sum"
+  threshold                 = "1"
+
+  alarm_actions = [aws_sns_topic.notification_topic.arn]
+}
