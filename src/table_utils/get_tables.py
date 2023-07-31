@@ -1,5 +1,7 @@
 import boto3
 import datetime as dt
+from pprint import pprint
+import botocore.errorfactory
 
 SEPERATOR = '/'
 
@@ -12,7 +14,31 @@ class EmptyBucketError (Exception):
     pass
 
 
-def get_tables(get_bucket_name):
+class BucketNotFoundError (Exception):
+    pass
+
+
+def get_ingestion_bucket_name():
+    '''
+    Returns:
+        The timestamped ingestion bucket name containing our raw CSV
+    '''
+    ingestion_bucket_name = 'terrific-totes-ingestion-bucket'
+    ingestion_bucket_ts = get_timestamped_bucket_name(ingestion_bucket_name)
+    return ingestion_bucket_ts
+
+
+def get_parquet_bucket_name():
+    '''
+    Returns:
+        The timestamped name of the bucket containing our parquet data
+    '''
+    processed_bucket_name = 'terrific-totes-processed-bucket'
+    processed_bucket_ts = get_timestamped_bucket_name(processed_bucket_name)
+    return processed_bucket_ts
+
+
+def get_tables():
     ''' Used to collect a sorted list of tables, with the newest
         entries first.
 
@@ -24,13 +50,21 @@ def get_tables(get_bucket_name):
         tables: A list of table names - sorted by timestamp.
     '''
 
-    list_tables_response = boto3.client('s3').list_objects(
-        Bucket=get_bucket_name()
-    )
+    bucket_name = get_ingestion_bucket_name()
+    s3 = boto3.client('s3')
 
+    try:
+        list_tables_response = s3.list_objects(
+            Bucket=bucket_name
+        )
+    except s3.exceptions.NoSuchBucket:
+        raise BucketNotFoundError(bucket_name)
+
+    # The bucket is empty because it has no contents
     if 'Contents' not in list_tables_response:
         raise EmptyBucketError(list_tables_response['Name'])
 
+    # The names of the table
     tables = [table['Key'] for table in list_tables_response['Contents']]
 
     def get_key_timestamp(key):
@@ -46,12 +80,13 @@ def get_tables(get_bucket_name):
     return tables
 
 
-def get_most_recent_table(get_bucket_name, table_name):
+def get_most_recent_table(table_name):
     '''
-        Used to get the most recent table name
+        Used to get the S3 name most recently updated version of a table,
+        if for example we have 4 versions of staff.csv, this
+        will return the newest one.
 
     Args:
-        get_bucket_name - A function which returns the bucket name
         table_name - The name of the CSV file
 
     Returns:
@@ -62,7 +97,7 @@ def get_most_recent_table(get_bucket_name, table_name):
     '''
 
     try:
-        tables = get_tables(get_bucket_name)
+        tables = get_tables()
     except EmptyBucketError:
         raise TableNotFoundError(table_name)
 
@@ -71,3 +106,62 @@ def get_most_recent_table(get_bucket_name, table_name):
             return table
 
     raise TableNotFoundError(table_name)
+
+
+def get_table_contents(table_name):
+    '''
+        Will return the contents of the most recent table
+        packaged in a dictionary
+
+    Args:
+        table_name - the name of the table (not timestamped)
+
+    Returns
+        A dictionary of form:
+        -   name: The name of the table
+        -   body: The CSV contents of the table as a string
+    '''
+    s3_client = boto3.client('s3')
+    ingestion_bucket = get_ingestion_bucket_name()
+
+    def get_bucket_name():
+        return ingestion_bucket
+
+    key = get_most_recent_table(table_name)
+
+    response = s3_client.get_object(
+        Bucket=get_bucket_name(),
+        Key=key
+    )
+
+    body = response['Body'].read().decode('utf-8').splitlines()
+
+    return {
+        'name': table_name,
+        'body': body
+    }
+
+
+def get_timestamped_bucket_name(bucket_name):
+    '''
+    As our bucket names are time-stamped, we use this to find
+    the correct bucket without specifying exactly when it was created.
+
+    Args:
+        bucket_name - the non-timestamped name of the bucket:
+            example: terrific-totes-ingestion-bucket
+
+    Returns:
+        The timestamped bucket name, for example:
+            terrific-totes-ingestion-bucket20230725102602583400000001
+
+    Throws:
+        BucketNotFoundError - when the bucket does not exist
+    '''
+
+    for bucket in boto3.client("s3").list_buckets().get("Buckets"):
+        if bucket["Name"].startswith(bucket_name):
+            return bucket["Name"]
+
+    # The bucket does not exist.
+    raise BucketNotFoundError(bucket_name)
