@@ -84,29 +84,13 @@ def process_to_parquet(csv_name):
     ingestion_bucket = get_ingestion_bucket_name()
     parquet_bucket = get_processed_bucket_name()
     names = get_csv_names()
-    print(names)
     for csv_name in names:
         if 'currency' in csv_name:
             create_currency_parquet(csv_name, ingestion_bucket, parquet_bucket)
         elif 'design' in csv_name:
             create_design_parquet(csv_name, ingestion_bucket, parquet_bucket)
     
-    
-    # spreadsheet_name = csv_name[0:-4] + '.parquet'
-    # s3 = boto3.client('s3')
-    # response = s3.get_object(Bucket=get_ingestion_bucket_name(), Key=csv_name)
 
-    # data_frame = response_to_data_frame(response)
-    # parquet_data = data_frame.to_parquet(engine='pyarrow')
-
-    # """
-    #     Put our parquet into the processed bucket
-    # """
-    # s3.put_object(
-    #     Bucket=get_processed_bucket_name(),
-    #     Key=spreadsheet_name,
-    #     Body=parquet_data
-    # )
     logging.info(f'CSV to Parquet conversion finished for {csv_name}')
 
 
