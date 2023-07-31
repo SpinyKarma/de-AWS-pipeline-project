@@ -30,6 +30,9 @@ def response_to_data_frame(response):
 def read_csv_as_dataframes():
     s3 = boto3.client('s3')
 
+    objects = s3.list_objects(Bucket=get_ingestion_bucket_name())
+    pprint(objects)
+
     staff_response = s3.get_object(
         Bucket=get_ingestion_bucket_name(),
         Key='staff.csv')
@@ -42,6 +45,11 @@ def read_csv_as_dataframes():
         'staff': response_to_data_frame(staff_response),
         'department': response_to_data_frame(departments_response)
     }
+
+
+def print_dicts(staff_dict, department_dict):
+    pprint('STAFF DICT', staff_dict)
+    pprint('DEPARTMENT DICT', department_dict)
 
 
 def gen_dim_staff(
@@ -63,17 +71,9 @@ def gen_dim_staff(
         TODO
     """
 
-    staff_dict = staff_dataframe.to_dict()
-    department_dict = department_dataframe.to_dict()
-    dim_staff = {}
-
-    """
-        TODO: Process staff_dict and department_dict
-        into dim_staff dict to be converted into a CSV
-    """
-
-    pprint(staff_dict)
-    pprint(department_dict)
+    staff_dict = staff_dataframe.to_dict('records')
+    department_dict = department_dataframe.to_dict('records')
+    print_dicts(staff_dict, department_dict)
 
 
 # Testing:
