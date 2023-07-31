@@ -53,33 +53,29 @@ resource "aws_cloudwatch_log_group" "ingestion_log_group" {
 ####  INGESTION LAMBDA  ####
 ############################
 
-locals {
-  lambda_path = "../src/lambda_ingestion"
-}
-
-data "archive_file" "lambda_zip" {
+data "archive_file" "ingestion_lambda_zip" {
   type        = "zip"
   source_dir  = "${path.module}/../src/lambda_ingestion"
   output_path = "${path.module}/../lambda_ingestion.zip"
 }
 
-resource "aws_s3_object" "lambda_code" {
-  bucket = aws_s3_bucket.code_bucket.bucket
-  key    = "lambda_ingestion.zip"
-  acl    = "private"
-
-  source = data.archive_file.lambda_zip.output_path
+resource "aws_s3_object" "ingestion_lambda_code" {
+  bucket      = aws_s3_bucket.code_bucket.bucket
+  key         = "lambda_ingestion.zip"
+  acl         = "private"
+  source      = data.archive_file.ingestion_lambda_zip.output_path
+  source_hash = data.archive_file.ingestion_lambda_zip.output_base64sha256
 }
 
 resource "aws_lambda_function" "ingestion_lambda" {
-  s3_bucket     = aws_s3_bucket.code_bucket.bucket
-  s3_key        = "lambda_ingestion.zip"
-  function_name = "ingestion_lambda_handler"
-  role          = aws_iam_role.ingestion_lambda_role.arn
-  handler       = "ingestion_lambda.ingestion_lambda_handler"
-  #handler may need to be "lambda_ingestion.lambda.ingestion_lambda_handler"
-  runtime = "python3.10"
-  timeout = "60"
+  s3_bucket        = aws_s3_bucket.code_bucket.bucket
+  s3_key           = "lambda_ingestion.zip"
+  function_name    = "ingestion_lambda_handler"
+  role             = aws_iam_role.ingestion_lambda_role.arn
+  handler          = "ingestion_lambda.ingestion_lambda_handler"
+  runtime          = "python3.10"
+  timeout          = "60"
+  source_code_hash = data.archive_file.ingestion_lambda_zip.output_base64sha256
 }
 
 
@@ -124,14 +120,14 @@ resource "aws_cloudwatch_log_metric_filter" "table_ingestion_error_metric" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "table_ingestion_error_alarm" {
-  alarm_name                = "table_ingestion_error_alarm"
-  comparison_operator       = "GreaterThanOrEqualToThreshold"
-  evaluation_periods        = 1
-  metric_name               = "table_ingestion_error_metric"
-  namespace                 = "table_ingestion_error_metric"
-  period                    = 60
-  statistic                 = "Sum"
-  threshold                 = "1"
+  alarm_name          = "table_ingestion_error_alarm"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = 1
+  metric_name         = "table_ingestion_error_metric"
+  namespace           = "table_ingestion_error_metric"
+  period              = 60
+  statistic           = "Sum"
+  threshold           = "1"
 
   alarm_actions = [aws_sns_topic.notification_topic.arn]
 }
@@ -149,14 +145,39 @@ resource "aws_cloudwatch_log_metric_filter" "invalid_credentials_error_metric" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "invalid_credentials_error_alarm" {
-  alarm_name                = "invalid_credentials_error_alarm"
-  comparison_operator       = "GreaterThanOrEqualToThreshold"
-  evaluation_periods        = 1
-  metric_name               = "invalid_credentials_error_metric"
-  namespace                 = "invalid_credentials_error_metric"
-  period                    = 60
-  statistic                 = "Sum"
-  threshold                 = "1"
+  alarm_name          = "invalid_credentials_error_alarm"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = 1
+  metric_name         = "invalid_credentials_error_metric"
+  namespace           = "invalid_credentials_error_metric"
+  period              = 60
+  statistic           = "Sum"
+  threshold           = "1"
+
+  alarm_actions = [aws_sns_topic.notification_topic.arn]
+}
+
+resource "aws_cloudwatch_log_metric_filter" "no_timestamp_error_metric" {
+  name           = "no_timestamp_error"
+  pattern        = "NonTimestampedCSVError"
+  log_group_name = "/aws/lambda/${aws_lambda_function.ingestion_lambda.function_name}"
+
+  metric_transformation {
+    name      = "no_timestamp_Error_metric"
+    namespace = "no_timestamp_Error_metric"
+    value     = "1"
+  }
+}
+
+resource "aws_cloudwatch_metric_alarm" "no_timestamp_error_alarm" {
+  alarm_name          = "no_timestamp_Error_alarm"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = 1
+  metric_name         = "no_timestamp_Error_metric"
+  namespace           = "no_timestamp_Error_metric"
+  period              = 60
+  statistic           = "Sum"
+  threshold           = "1"
 
   alarm_actions = [aws_sns_topic.notification_topic.arn]
 }
@@ -186,14 +207,14 @@ resource "aws_cloudwatch_log_metric_filter" "exception_error_metric" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "exception_error_alarm" {
-  alarm_name                = "exception_Error_alarm"
-  comparison_operator       = "GreaterThanOrEqualToThreshold"
-  evaluation_periods        = 1
-  metric_name               = "exception_Error_metric"
-  namespace                 = "exception_Error_metric"
-  period                    = 60
-  statistic                 = "Sum"
-  threshold                 = "1"
+  alarm_name          = "exception_Error_alarm"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = 1
+  metric_name         = "exception_Error_metric"
+  namespace           = "exception_Error_metric"
+  period              = 60
+  statistic           = "Sum"
+  threshold           = "1"
 
   alarm_actions = [aws_sns_topic.notification_topic.arn]
 }
