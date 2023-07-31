@@ -21,7 +21,7 @@ def get_available_buckets(s3):
         Will return a list of our available buckets
     """
     buckets = s3.list_buckets()['Buckets']
-    available_buckets = [res['Name']for res in buckets]
+    available_buckets = [res['Name'] for res in buckets]
     return available_buckets
 
 
@@ -79,7 +79,6 @@ def process_to_parquet(thread_index, csv_name):
     spreadsheet_name = csv_name[0:-4] + '.parquet'
     s3 = boto3.client('s3')
     response = s3.get_object(Bucket=get_ingestion_bucket_name(), Key=csv_name)
-
     data_frame = response_to_data_frame(response)
     parquet_data = data_frame.to_parquet(engine='pyarrow')
 
@@ -138,3 +137,6 @@ def transformation_lambda_handler(event, context):
     times.append(time.perf_counter())
     logging.info('Work has finished')
     logging.debug('Seconds:', times[1] - times[0])
+
+
+lambda_handler(None, None)

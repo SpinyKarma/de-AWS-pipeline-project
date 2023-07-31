@@ -76,7 +76,7 @@ def get_credentials(secret_name='Ingestion_credentials'):
     """Loads a set of DB credentials using a secret stored in AWS secrets.
 
         Args:
-            secet_name: The name of the secret to extract credentials from, 
+            secet_name: The name of the secret to extract credentials from,
             defaults to Ingestion_credentials. Also takes Warehouse_credentials
 
         Returns:
