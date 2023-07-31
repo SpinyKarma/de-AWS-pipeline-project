@@ -163,17 +163,20 @@ def get_last_ingestion_timestamp(Bucket):
     s3_client = boto3.client("s3")
     try:
         res = s3_client.list_objects_v2(Bucket=Bucket)['Contents']
-        names = [item['Key'] for item in res]
-        sorted_names = sorted(names, reverse=True)
-        last_timestamp = sorted_names[0].split("/")[0]
-        if last_timestamp[0].isalpha():
-            raise NonTimestampedCSVError
-        return dt.fromisoformat(last_timestamp)
     except KeyError:
         return dt(1970, 1, 1)
+    names = [item['Key'] for item in res]
+    sorted_names = sorted(names, reverse=True)
+    last_timestamp = sorted_names[0].split("/")[0]
+    print(last_timestamp)
+    try:
+        last_timestamp = dt.fromisoformat(last_timestamp)
+    except ValueError:
+        raise NonTimestampedCSVError
+    return last_timestamp
 
 
-def extract_table_to_csv(table_list, timestamp):
+def extract_table_to_csv(table_list, last_timestamp):
     '''Runs a query on the given table filtered by the given timestamp.
 
     Args:
@@ -191,7 +194,7 @@ def extract_table_to_csv(table_list, timestamp):
         for table_name in table_list:
             with connect() as db:
                 query_str = f'SELECT * FROM {pg8000.identifier(table_name)} WHERE '
-                query_str += f'last_updated > {pg8000.literal(timestamp.isoformat())};'
+                query_str += f'last_updated > {pg8000.literal(last_timestamp.isoformat())};'
                 result = db.run(query_str)
                 column_names = [column['name'] for column in db.columns]
                 rows = [dict(zip(column_names, row)) for row in result]
