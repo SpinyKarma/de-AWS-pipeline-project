@@ -1,7 +1,13 @@
 from moto import mock_s3
 import boto3
 from datetime import datetime as dt
-from src.table_utils.get_tables import get_tables
+from src.table_utils.get_tables import (
+    get_tables,
+    get_most_recent_table,
+    TableNotFoundError,
+    EmptyBucketError
+)
+import pytest
 
 SEPERATOR = '/'
 
@@ -19,10 +25,13 @@ def get_ingestion_bucket_name():
 
 def test_get_tables_returns_list():
     tables = get_tables(
-        get_bucket_name=get_ingestion_bucket_name,
-        seperator=SEPERATOR)
+        get_bucket_name=get_ingestion_bucket_name)
 
     assert isinstance(tables, list)
+
+
+def create_fake_bucket(s3):
+    pass
 
 
 @mock_s3
@@ -77,5 +86,69 @@ def test_get_tables_returns_list_of_tables():
             ContentType='application/text',
         )
 
-    tables = get_tables(get_bucket_name, SEPERATOR)
+    tables = get_tables(get_bucket_name)
     assert tables == expected_result
+
+
+@mock_s3
+def test_get_most_recent_table():
+    def get_bucket_name():
+        return 'test'
+
+    s3_client = boto3.client('s3', region_name='us-east-1')
+    s3_client.create_bucket(Bucket=get_bucket_name())
+    tablename = 'test-table.csv'
+
+    """
+        Please do not change this
+    """
+    files = [
+        f'2000-01-01T00:00:00{SEPERATOR}{tablename}',
+        f'1980-03-01T00:00:00{SEPERATOR}{tablename}',
+        f'1980-01-02T00:00:00{SEPERATOR}{tablename}',
+        f'1980-01-01T00:00:00{SEPERATOR}{tablename}',
+        f'1970-01-01T00:00:00{SEPERATOR}{tablename}',
+        f'1964-01-01T00:00:00{SEPERATOR}{tablename}'
+    ]
+    # put fake files in bucket
+    for filename in files:
+        s3_client.put_object(
+            Body="",
+            Bucket=get_bucket_name(),
+            Key=filename,
+            ContentType='application/text',
+        )
+
+    assert get_most_recent_table(
+        get_bucket_name, tablename) == files[0]
+
+
+@mock_s3
+def test_get_tables_throws_empty_bucket_error():
+    def get_bucket_name():
+        return 'test'
+
+    s3_client = boto3.client('s3', region_name='us-east-1')
+    s3_client.create_bucket(Bucket=get_bucket_name())
+
+    with pytest.raises(EmptyBucketError):
+        get_tables(get_bucket_name)
+
+
+@mock_s3
+def test_get_most_recent_table_throws_table_not_found_error():
+    def get_bucket_name():
+        return 'mybucket'
+
+    s3_client = boto3.client('s3', region_name='us-east-1')
+    s3_client.create_bucket(Bucket=get_bucket_name())
+
+    s3_client.put_object(
+        Body="",
+        Bucket=get_bucket_name(),
+        Key=f'2000-01-01T00:00:00{SEPERATOR}table.csv',
+        ContentType='application/text',
+    )
+
+    with pytest.raises(TableNotFoundError):
+        get_most_recent_table(get_bucket_name, 'does not exist')
