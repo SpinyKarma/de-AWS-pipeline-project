@@ -54,21 +54,21 @@ def get_csv_names(s3):
 
 
 
-# def response_to_data_frame(response):
+def response_to_data_frame(response):
     """
         This funtion will convert get_object response for a CSV file
         into a Pandas DataFrame
     """
 
-    # body_reader = response['Body']
-    # body = body_reader.read().decode('utf-8').splitlines()
-    # csv_reader = csv.DictReader(body)
-    # rows = []
+    body_reader = response['Body']
+    body = body_reader.read().decode('utf-8').splitlines()
+    csv_reader = csv.DictReader(body)
+    rows = []
 
-    # for data in csv_reader:
-    #     rows.append(data)
+    for data in csv_reader:
+        rows.append(data)
 
-    # return pd.DataFrame.from_dict(rows)
+    return pd.DataFrame.from_dict(rows)
 
 
 def process_to_parquet(csv_name):
@@ -80,16 +80,16 @@ def process_to_parquet(csv_name):
         This function is asynchronous and so out-of-order results will happen
     """
 
-    # logging.info(f'CSV to Parquet conversion begun for {csv_name}')
-    # ingestion_bucket = get_ingestion_bucket_name()
-    # parquet_bucket = get_processed_bucket_name()
-    # names = get_csv_names()
-    # print(names)
-    # for csv_name in names:
-    #     if 'currency' in csv_name:
-    #         create_currency_parquet(csv_name, ingestion_bucket, parquet_bucket)
-    #     elif 'design' in csv_name:
-    #         create_design_parquet(csv_name, ingestion_bucket, parquet_bucket)
+    logging.info(f'CSV to Parquet conversion begun for {csv_name}')
+    ingestion_bucket = get_ingestion_bucket_name()
+    parquet_bucket = get_processed_bucket_name()
+    names = get_csv_names()
+    print(names)
+    for csv_name in names:
+        if 'currency' in csv_name:
+            create_currency_parquet(csv_name, ingestion_bucket, parquet_bucket)
+        elif 'design' in csv_name:
+            create_design_parquet(csv_name, ingestion_bucket, parquet_bucket)
     
     
     spreadsheet_name = csv_name[0:-4] + '.parquet'
@@ -125,8 +125,6 @@ def transformation_lambda_handler(event, context):
             ''')
         return
 
-<<<<<<< HEAD:src/lambda_transformation/lambda.py
-=======
     if not is_ingestion_bucket_available(s3):
         logging.critical(
             f'''
@@ -135,7 +133,6 @@ def transformation_lambda_handler(event, context):
             ' does not exist!
             ''')
         return
->>>>>>> main:src/lambda_transformation/transformation_lambda.py
 
     """
         The buckets exist, so let's
@@ -154,19 +151,9 @@ def transformation_lambda_handler(event, context):
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         executor.map(process_to_parquet, range(max_workers), csv_names)
 
-<<<<<<< HEAD:src/lambda_transformation/lambda.py
-    print('Work has finished')
-
-
-    
-
-
-
-=======
     times.append(time.perf_counter())
     logging.info('Work has finished')
     logging.debug('Seconds:', times[1] - times[0])
 
 
-lambda_handler(None, None)
->>>>>>> main:src/lambda_transformation/transformation_lambda.py
+# lambda_handler(None, None)
