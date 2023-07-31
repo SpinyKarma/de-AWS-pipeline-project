@@ -30,10 +30,6 @@ def test_get_tables_returns_list():
     assert isinstance(tables, list)
 
 
-def create_fake_bucket(s3):
-    pass
-
-
 @mock_s3
 def test_get_tables_returns_list_of_tables():
     # snagged from test_timestamp.py
