@@ -90,9 +90,6 @@ def process_to_parquet(csv_name):
             create_currency_parquet(csv_name, ingestion_bucket, parquet_bucket)
         elif 'design' in csv_name:
             create_design_parquet(csv_name, ingestion_bucket, parquet_bucket)
-
-    
-    
     
     
     # spreadsheet_name = csv_name[0:-4] + '.parquet'
