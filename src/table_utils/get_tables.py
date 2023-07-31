@@ -114,11 +114,11 @@ def get_table_contents(table_name):
         packaged in a dictionary
 
     Args:
-        table_name - the name of the table (not timestamped)
+        table_name - the name of the table (timestamped)
 
     Returns
         A dictionary of form:
-        -   name: The name of the table
+        -   name: The name of the table (timestamped)
         -   body: The CSV contents of the table as a string
     '''
     s3_client = boto3.client('s3')
