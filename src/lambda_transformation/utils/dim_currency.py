@@ -10,4 +10,6 @@ def create_currency_parquet(key, ingestion_bucket, parquet_bucket):
     df['currency_name'] = df['currency_code'].apply(
         lambda x: ccy.currency(x).name)
     new_currency = df.to_parquet()
-    s3.put_object(Bucket=parquet_bucket, Key='dim_currency.parquet', Body=new_currency)
+    key_parts = key.split('/')
+    timestamp = '/'.join(key_parts[:-1])
+    s3.put_object(Bucket=parquet_bucket, Key=f'{timestamp}/dim_currency.parquet', Body=new_currency)
