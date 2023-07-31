@@ -47,10 +47,27 @@ def get_tables(get_bucket_name):
 
 
 def get_most_recent_table(get_bucket_name, table_name):
-    tables = get_tables(get_bucket_name)
+    '''
+        Used to get the most recent table name
+
+    Args:
+        get_bucket_name - A function which returns the bucket name
+        table_name - The name of the CSV file
+
+    Returns:
+        The most recent table name
+
+    Throws:
+        TableNotFoundError - when the table does not exist
+    '''
+
+    try:
+        tables = get_tables(get_bucket_name)
+    except EmptyBucketError:
+        raise TableNotFoundError(table_name)
 
     for table in tables:
-        if table_name in table:
+        if table.endswith(table_name):
             return table
 
     raise TableNotFoundError(table_name)
