@@ -3,7 +3,7 @@ attrs==23.1.0
 bandit==1.7.4
 boto3==1.26.59
 botocore==1.29.59
-ccy==i.3.1
+ccy==1.3.1
 certifi==2023.7.22
 cffi==1.15.1
 charset-normalizer==3.2.0
