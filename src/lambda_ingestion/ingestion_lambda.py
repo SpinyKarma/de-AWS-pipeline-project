@@ -5,11 +5,6 @@ import pg8000.native as pg8000
 import csv
 from datetime import datetime as dt
 import csv
-now = dt.now()
-
-
-def get_current_timestamp():
-    return now
 
 
 def ingestion_lambda_handler(event, context):

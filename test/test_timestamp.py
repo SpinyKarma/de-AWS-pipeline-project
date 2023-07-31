@@ -6,7 +6,6 @@ from src.lambda_ingestion.ingestion_lambda import (
     get_last_ingestion_timestamp,
     extract_table_to_csv,
     csv_to_s3,
-    get_current_timestamp,
     NonTimestampedCSVError
 )
 from unittest.mock import Mock, patch
@@ -123,15 +122,19 @@ def test_return_empty_dict_when_no_return_from_SQL(mock_connection):
 
 @mock_s3
 def test_adds_new_csv_to_s3_when_passed_new_data():
-    timestamp = get_current_timestamp().isoformat()
     fake_csv = generate_csv_string()
     s3_client = boto3.client('s3', region_name='us-east-1')
     s3_client.create_bucket(Bucket='test')
     csv_to_s3('test', {"fake": fake_csv})
     res = s3_client.list_objects_v2(Bucket="test")
     object_list = [obj['Key'] for obj in res['Contents']]
-    new_csv = f"{timestamp}/fake.csv"
-    assert new_csv in object_list
+    new_csv = "/fake.csv"
+    present = False
+    for item in object_list:
+        if new_csv in item:
+            present = True
+            new_csv = item
+    assert present
     new_csv_contents = s3_client.get_object(Bucket="test", Key=new_csv)['Body']
     new_csv_contents = new_csv_contents.read().decode()
     assert new_csv_contents == fake_csv
