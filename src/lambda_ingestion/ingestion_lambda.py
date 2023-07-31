@@ -30,8 +30,10 @@ def ingestion_lambda_handler(event, context):
             'department',
             'design'
         ]
-        buckey_name = get_ingestion_bucket_name()
-        postgres_to_csv(buckey_name, table_names)
+        bucket_name = get_ingestion_bucket_name()
+        last = get_last_ingestion_timestamp(bucket_name)
+        csvs_to_update = extract_table_to_csv(table_names, last)
+        csv_to_s3(bucket_name, csvs_to_update)
     except TableIngestionError as error:
         logging.error(f'Table Ingestion Error: {error}')
         raise error
@@ -163,47 +165,50 @@ def get_last_ingestion_timestamp(Bucket):
         res = s3_client.list_objects_v2(Bucket=Bucket)['Contents']
         names = [item['Key'] for item in res]
         sorted_names = sorted(names, reverse=True)
-        last_timestamp = dt.fromisoformat(sorted_names[0].split("_")[0])
-        if last_timestamp.isoformat()[0].isalpha():
+        last_timestamp = sorted_names[0].split("/")[0]
+        if last_timestamp[0].isalpha():
             raise NonTimestampedCSVError
-        return last_timestamp
+        return dt.fromisoformat(last_timestamp)
     except KeyError:
         return dt(1970, 1, 1)
 
 
-def extract_table_to_csv(table_name, timestamp):
+def extract_table_to_csv(table_list, timestamp):
     '''Runs a query on the given table filtered by the given timestamp.
 
     Args:
-        table_name: The name of the table to query.
+        table_list: The list of table names to query.
 
         timestamp: A datetime.datetime object, all entries with a last_updated
         key more recent than this will be pulled from the table.
 
     Returns:
-        csv_text: A csv formatted string, if the csv file does not exist
-        in the s3 bucket then this includes headers, otherwise it does not
-        include headers.
+        updated_tables: A dict of each table name that had a return from the 
+        postgres query as keys and the return formatted to a csv as the value.
     '''
+    updated_tables = {}
     try:
-        with connect() as db:
-            query_str = f'SELECT * FROM {pg8000.identifier(table_name)} WHERE '
-            query_str += f'last_updated > {pg8000.literal(timestamp.isoformat())};'
-            result = db.run(query_str)
-            column_names = [column['name'] for column in db.columns]
-            rows = [dict(zip(column_names, row)) for row in result]
-            csv_builder = CsvBuilder()
-            csv_writer = csv.DictWriter(csv_builder, fieldnames=column_names)
-            if rows != []:
-                csv_writer.writeheader()
-            csv_writer.writerows(rows)
-            csv_text = csv_builder.as_txt()
-            return csv_text
+        for table_name in table_list:
+            with connect() as db:
+                query_str = f'SELECT * FROM {pg8000.identifier(table_name)} WHERE '
+                query_str += f'last_updated > {pg8000.literal(timestamp.isoformat())};'
+                result = db.run(query_str)
+                column_names = [column['name'] for column in db.columns]
+                rows = [dict(zip(column_names, row)) for row in result]
+                csv_builder = CsvBuilder()
+                csv_writer = csv.DictWriter(
+                    csv_builder, fieldnames=column_names)
+                if rows != []:
+                    csv_writer.writeheader()
+                    csv_writer.writerows(rows)
+                    csv_text = csv_builder.as_txt()
+                    updated_tables[table_name] = csv_text
+        return updated_tables
     except:
         raise TableIngestionError
 
 
-def postgres_to_csv(Bucket, table_list):
+def csv_to_s3(Bucket, updated_table_list):
     '''Extracts new csv data from each table and appends to files in bucket.
 
     Queries each table in the database and writes the contents to a csv file
@@ -213,23 +218,21 @@ def postgres_to_csv(Bucket, table_list):
     Args:
         Bucket: Name of the bucket to modify the csvs of.
 
-        table_list: A list of the table names to perform the function on.
+        updated_table_list: A dict of the table names to perform the function 
+        on, paired with the csv data to write.
 
     Returns:
         None
 
     Side-effects:
-        Updates the S3 csvs with new data.
+        Uploads the csvs with new data to S3.
     '''
     s3_client = boto3.client("s3")
-    last_timestamp = get_last_ingestion_timestamp(Bucket)
-
-    for table in table_list:
-        output_csv = extract_table_to_csv(table, last_timestamp)
-        if output_csv != "":
-            s3_client.put_object(
-                Body=output_csv,
-                Bucket=Bucket,
-                Key=f'{current_timestamp.isoformat()}_{table}.csv',
-                ContentType='application/text'
-            )
+    for table in updated_table_list.keys():
+        output_csv = updated_table_list[table]
+        s3_client.put_object(
+            Body=output_csv,
+            Bucket=Bucket,
+            Key=f'{current_timestamp.isoformat()}/{table}.csv',
+            ContentType='application/text'
+        )
