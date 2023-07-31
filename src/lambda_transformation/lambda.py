@@ -92,9 +92,11 @@ def lambda_handler(event, context):
             ''')
         return
 
+
     """
         Grab our processed data:
     """
+
     csv_names = get_csv_names(s3)
 
     """
@@ -108,3 +110,9 @@ def lambda_handler(event, context):
         executor.map(process_to_parquet, range(max_workers), csv_names)
 
     print('Work has finished')
+
+
+    
+
+
+
