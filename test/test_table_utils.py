@@ -1,11 +1,9 @@
 from moto import mock_s3
 import boto3
 from datetime import datetime as dt
-from pprint import pprint
-
 from src.table_utils.get_tables import get_tables
 
-SEPERATOR = '_'
+SEPERATOR = '/'
 
 
 def get_ingestion_bucket_name():

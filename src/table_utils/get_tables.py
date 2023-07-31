@@ -2,7 +2,7 @@ import boto3
 import datetime as dt
 
 
-def get_tables(get_bucket_name, seperator='_'):
+def get_tables(get_bucket_name, seperator='/'):
     ''' Used to collect a sorted list of tables, with the newest
         entries first.
 
