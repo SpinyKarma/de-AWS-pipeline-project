@@ -1,6 +1,6 @@
 import boto3
 import pandas as pd
-from src.table_utils.get_tables import (get_tables, get_most_recent_table)
+from src.table_utils.get_tables import (get_most_recent_table)
 from pprint import pprint
 from src.lambda_ingestion.ingestion_lambda import (get_last_ingestion_timestamp)
 from datetime import datetime as dt
@@ -57,10 +57,15 @@ def generate_counter_party(key, ingestion_bucket, parquet_bucket):
     
     # pprint(dim_counterparty)
 
-    timestamp = get_last_ingestion_timestamp(ingestion_bucket)
-    print(timestamp)
+    # timestamp = get_last_ingestion_timestamp(ingestion_bucket)
+    # print(timestamp)
 
-    s3.put_object(Bucket=parquet_bucket, Key=f'{timestamp}/dim_counterparty.parquet')
+    new_counterparty = dim_counterparty.to_parquet()
+    pprint(new_counterparty)
+
+    key_parts = key[1].split('/')
+    timestamp = '/'.join(key_parts[:-1])
+    s3.put_object(Bucket=parquet_bucket, Key=f'{timestamp}/dim_counterparty.parquet',Body=new_counterparty)
 
 def get_bucket_name():
     return 'terrific-totes-ingestion-bucket20230725102602583400000001'
