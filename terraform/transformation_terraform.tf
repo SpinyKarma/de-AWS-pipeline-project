@@ -61,21 +61,23 @@ data "archive_file" "transformation_lambda_zip" {
 }
 
 resource "aws_s3_object" "transformation_lambda_code" {
-  bucket = aws_s3_bucket.code_bucket.bucket
-  key    = "lambda_transformation.zip"
-  acl    = "private"
-
-  source = data.archive_file.transformation_lambda_zip.output_path
+  bucket      = aws_s3_bucket.code_bucket.bucket
+  key         = "lambda_transformation.zip"
+  acl         = "private"
+  source      = data.archive_file.transformation_lambda_zip.output_path
+  source_hash = data.archive_file.transformation_lambda_zip.output_base64sha256
 }
 
 resource "aws_lambda_function" "transformation_lambda" {
-  s3_bucket     = aws_s3_bucket.code_bucket.bucket
-  s3_key        = "lambda_transformation.zip"
-  function_name = "transformation_lambda_handler"
-  role          = aws_iam_role.transformation_lambda_role.arn
-  handler       = "transformation_lambda.transformation_lambda_handler"
-  runtime       = "python3.10"
-  timeout       = "60"
+  s3_bucket        = aws_s3_bucket.code_bucket.bucket
+  s3_key           = "lambda_transformation.zip"
+  function_name    = "transformation_lambda_handler"
+  role             = aws_iam_role.transformation_lambda_role.arn
+  handler          = "transformation_lambda.transformation_lambda_handler"
+  runtime          = "python3.10"
+  timeout          = "60"
+  source_code_hash = data.archive_file.transformation_lambda_zip.output_base64sha256
+  layers           = [aws_lambda_layer_version.lambda_requirements_layer.arn]
 }
 
 
