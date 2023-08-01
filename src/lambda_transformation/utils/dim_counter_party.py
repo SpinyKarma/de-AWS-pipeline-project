@@ -4,28 +4,16 @@ from src.table_utils.get_tables import (get_most_recent_table)
 from pprint import pprint
 from src.lambda_ingestion.ingestion_lambda import (get_last_ingestion_timestamp)
 from datetime import datetime as dt
-current_timestamp = dt.now()
 
-def get_current_timestamp():
-    return current_timestamp
+# s3 = boto3.client('s3')
 
-s3 = boto3.client('s3')
-
-def generate_counter_party(key, ingestion_bucket, parquet_bucket):
-    firstResponse= s3.get_object(Bucket=ingestion_bucket, Key=key[0])
-    address = pd.read_csv(firstResponse['Body'])
-    # print(address)
-    secondResponse= s3.get_object(Bucket=ingestion_bucket, Key=key[1])
-    counterparty = pd.read_csv(secondResponse['Body'])
-    # print(counterparty)
+def generate_counter_party(address_dict,counterparty_dict):
     
-    # merge the two files above in order to create a dim_counterparty.csv 
+    key=address_dict['Key']
+    address=address_dict['Body']
+    counterparty=counterparty_dict['Body']    
+#merge the two files above in order to create a dim_counterparty.csv 
     m_data=pd.merge(counterparty,address,left_on='legal_address_id', right_on='address_id', how='left')
-    
-    
-
-    # m_data=pd.merge(counterparty,address,on=['legal_address_id','address_id'], how='left')
-
     dim_counterparty = m_data[[
                                 'counterparty_id', 
                                 'counterparty_legal_name',
@@ -37,9 +25,8 @@ def generate_counter_party(key, ingestion_bucket, parquet_bucket):
                                 'country',
                                 'phone'
                             ]].copy()
-    
-    # pprint(dim_counterparty)
 
+# rename dim_counterparty columns name 
     dim_counterparty.rename(
         columns={
             'counterparty_id':'counterparty_id', 
@@ -55,18 +42,14 @@ def generate_counter_party(key, ingestion_bucket, parquet_bucket):
             inplace=True
         )
     
-    # pprint(dim_counterparty)
+    dim_counterparty=dim_counterparty.where(pd.notnull(dim_counterparty),None)  
+   # concatenate the key with the dim_counterparty
+    new_key=key.split('/')[0]+"/dim_counterparty.csv"
+   # make dict and return it 
+    dim_counterparty_dict={"Key": new_key,"Body": dim_counterparty}  
+    return dim_counterparty_dict
 
-    # timestamp = get_last_ingestion_timestamp(ingestion_bucket)
-    # print(timestamp)
-
-    new_counterparty = dim_counterparty.to_parquet()
-    pprint(new_counterparty)
-
-    key_parts = key[1].split('/')
-    timestamp = '/'.join(key_parts[:-1])
-    s3.put_object(Bucket=parquet_bucket, Key=f'{timestamp}/dim_counterparty.parquet',Body=new_counterparty)
-
+   
 def get_bucket_name():
     return 'terrific-totes-ingestion-bucket20230725102602583400000001'
 
@@ -79,6 +62,3 @@ generate_counter_party(
     keyList,'terrific-totes-ingestion-bucket20230725102602583400000001','terrific-totes-processed-bucket20230725102602584600000002'
     )
 
-# pprint(get_most_recent_table(get_bucket_name, 'counterparty.csv'))
-
-# pprint(get_most_recent_table(get_bucket_name, 'counterparty.csv'))
