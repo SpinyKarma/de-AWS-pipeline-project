@@ -28,27 +28,27 @@ resource "aws_iam_role" "transformation_lambda_role" {
 ###  TRANSFORMATION TRIGGER  ###
 ################################
 
-resource "aws_cloudwatch_log_group" "subscription_log_group" {
-  name = "transform_trigger"
-}
+# resource "aws_cloudwatch_log_group" "subscription_log_group" {
+#   name = "transform_trigger"
+# }
 
 
-resource "aws_lambda_permission" "allow_cloudwatch_trigger_transformation" {
- statement_id = "AllowExecutionFromCloudWatch"
- action = "lambda:InvokeFunction"
- function_name = "transformation_lambda_handler"
- principal   = "logs.${var.region}.amazonaws.com"
- source_arn = data.aws_cloudwatch_log_group.ingestion_log_group.arn
-}
+# resource "aws_lambda_permission" "allow_cloudwatch_trigger_transformation" {
+#  statement_id = "AllowExecutionFromCloudWatch"
+#  action = "lambda:InvokeFunction"
+#  function_name = "transformation_lambda_handler"
+#  principal   = "logs.${var.region}.amazonaws.com"
+#  source_arn = data.aws_cloudwatch_log_group.ingestion_log_group.arn
+# }
 
-resource "aws_cloudwatch_log_subscription_filter" "transformation_trigger" {
- depends_on      = ["aws_lambda_permission.allow_cloudwatch_trigger_transformation"]
- name            = "transformation_trigger"
- log_group_name  = "transform_trigger"
- filter_pattern  = "END"
- destination_arn = aws_lambda_function.ingestion_lambda.arn
- distribution    = "ByLogStream"
-}
+# resource "aws_cloudwatch_log_subscription_filter" "transformation_trigger" {
+#  depends_on      = ["aws_lambda_permission.allow_cloudwatch_trigger_transformation"]
+#  name            = "transformation_trigger"
+#  log_group_name  = "transform_trigger"
+#  filter_pattern  = "END"
+#  destination_arn = aws_lambda_function.ingestion_lambda.arn
+#  distribution    = "ByLogStream"
+# }
 
 
 resource "aws_iam_role_policy_attachment" "trans_s3_write_policy_attachment" {
