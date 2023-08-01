@@ -113,7 +113,7 @@ def get_table_contents(table_name):
         packaged in a dictionary
 
     Args:
-        table_name - the name of the table (timestamped)
+        table_name - the name of the table
 
     Returns
         A dictionary of form:
@@ -129,7 +129,7 @@ def get_table_contents(table_name):
         Key=key
     )
 
-    body = response['Body'].read().decode('utf-8').splitlines()
+    body = '\n'.join(response['Body'].read().decode('utf-8').splitlines())
 
     return {
         'name': table_name,
