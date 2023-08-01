@@ -24,27 +24,6 @@ resource "aws_iam_role" "transformation_lambda_role" {
     EOF
 }
 
-################################
-###  TRANSFORMATION TRIGGER  ###
-################################
-
-# resource "aws_lambda_permission" "allow_cloudwatch_trigger_transformation" {
-#  statement_id = "AllowExecutionFromCloudWatch"
-#  action = "lambda:InvokeFunction"
-#  function_name = ""
-#  principal   = "logs.${var.region}.amazonaws.com"
-#  source_arn = data.aws_cloudwatch_log_group.ingestion_log_group.arn
-# }
-
-# resource "aws_cloudwatch_log_subscription_filter" "transformation_trigger" {
-#  depends_on      = ["aws_lambda_permission.allow_cloudwatch_trigger_transformation"]
-#  name            = "transformation_trigger"
-#  log_group_name  = data.aws_cloudwatch_log_group.ingestion_log_group.name
-#  filter_pattern  = "END"
-#  destination_arn = aws_lambda_function.ingestion_lambda.arn
-#  distribution    = "ByLogStream"
-# }
-
 
 resource "aws_iam_role_policy_attachment" "trans_s3_write_policy_attachment" {
   role       = aws_iam_role.transformation_lambda_role.name
@@ -102,28 +81,25 @@ resource "aws_lambda_function" "transformation_lambda" {
   layers           = [aws_lambda_layer_version.lambda_requirements_layer.arn]
 }
 
+################################
+###  TRANSFORMATION TRIGGER  ###
+################################
 
-########################
-####  EVENT BRIDGE  ####
-########################
-
-resource "aws_cloudwatch_event_rule" "transformation_lambda_rule" {
-  name                = "transformation_lambda_rule"
-  schedule_expression = "rate(3 minutes)"
-}
-
-resource "aws_cloudwatch_event_target" "transformation_lambda_target" {
-  rule      = aws_cloudwatch_event_rule.transformation_lambda_rule.name
-  target_id = "SendToLambda"
-  arn       = aws_lambda_function.transformation_lambda.arn
-}
-
-resource "aws_lambda_permission" "transformation_lambda_event" {
-  statement_id  = "AllowExecutionFromEventBridge"
+resource "aws_lambda_permission" "allow_cloudwatch_trigger_transformation" {
+  statement_id  = "AllowExecutionFromCloudWatch"
   action        = "lambda:InvokeFunction"
   function_name = "transformation_lambda_handler"
-  principal     = "events.amazonaws.com"
-  source_arn    = aws_cloudwatch_event_rule.transformation_lambda_rule.arn
+  principal     = "logs.${var.region}.amazonaws.com"
+  source_arn    = data.aws_cloudwatch_log_group.ingestion_log_group.arn
+}
+
+resource "aws_cloudwatch_log_subscription_filter" "transformation_trigger" {
+  depends_on      = ["aws_lambda_permission.allow_cloudwatch_trigger_transformation"]
+  name            = "transformation_trigger"
+  log_group_name  = data.aws_cloudwatch_log_group.ingestion_log_group.name
+  filter_pattern  = "END"
+  destination_arn = aws_lambda_function.ingestion_lambda.arn
+  distribution    = "ByLogStream"
 }
 
 
