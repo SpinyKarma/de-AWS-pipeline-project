@@ -122,14 +122,6 @@ def transformation_lambda_handler(event, context):
             ''')
         return
 
-    if not is_ingestion_bucket_available(s3):
-        logging.critical(
-            f'''
-            error: the ingestion bucket '
-            {get_ingestion_bucket_name()}
-            ' does not exist!
-            ''')
-        return
 
     """
         The buckets exist, so let's
@@ -148,9 +140,10 @@ def transformation_lambda_handler(event, context):
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         executor.map(process_to_parquet, range(max_workers), csv_names)
 
-    times.append(time.perf_counter())
-    logging.info('Work has finished')
-    logging.debug('Seconds:', times[1] - times[0])
+    print('Work has finished')
 
 
-# lambda_handler(None, None)
+    
+
+
+
