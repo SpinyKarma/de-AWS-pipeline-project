@@ -220,5 +220,17 @@ resource "aws_cloudwatch_log_metric_filter" "ingestion_end" {
     value     = "1"
   }
 }
+resource "aws_cloudwatch_metric_alarm" "transform_trigger_alarm" {
+  alarm_name          = "transform_trigger_alarm"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = 1
+  metric_name         = "ingestion_end"
+  namespace           = "ingestion_end"
+  period              = 60
+  statistic           = "Sum"
+  threshold           = "1"
+
+  alarm_actions = [aws_lambda_function.transformation_lambda.arn]
+}
 
 

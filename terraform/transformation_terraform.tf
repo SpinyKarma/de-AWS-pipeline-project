@@ -112,26 +112,26 @@ resource "aws_lambda_function" "transformation_lambda" {
 
 ########################
 ####  EVENT BRIDGE  ####
-########################
+# ########################
 
-resource "aws_cloudwatch_event_rule" "transformation_lambda_rule" {
-  name                = "transformation_lambda_rule"
-  schedule_expression = "rate(3 minutes)"
-}
+# resource "aws_cloudwatch_event_rule" "transformation_lambda_rule" {
+#   name                = "transformation_lambda_rule"
+#   schedule_expression = "rate(3 minutes)"
+# }
 
-resource "aws_cloudwatch_event_target" "transformation_lambda_target" {
-  rule      = aws_cloudwatch_event_rule.transformation_lambda_rule.name
-  target_id = "SendToLambda"
-  arn       = aws_lambda_function.transformation_lambda.arn
-}
+# resource "aws_cloudwatch_event_target" "transformation_lambda_target" {
+#   rule      = aws_cloudwatch_event_rule.transformation_lambda_rule.name
+#   target_id = "SendToLambda"
+#   arn       = aws_lambda_function.transformation_lambda.arn
+# }
 
-resource "aws_lambda_permission" "transformation_lambda_event" {
-  statement_id  = "AllowExecutionFromEventBridge"
-  action        = "lambda:InvokeFunction"
-  function_name = "transformation_lambda_handler"
-  principal     = "events.amazonaws.com"
-  source_arn    = aws_cloudwatch_event_rule.transformation_lambda_rule.arn
-}
+# resource "aws_lambda_permission" "transformation_lambda_event" {
+#   statement_id  = "AllowExecutionFromEventBridge"
+#   action        = "lambda:InvokeFunction"
+#   function_name = "transformation_lambda_handler"
+#   principal     = "events.amazonaws.com"
+#   source_arn    = aws_cloudwatch_event_rule.transformation_lambda_rule.arn
+# }
 
 
 #############################
