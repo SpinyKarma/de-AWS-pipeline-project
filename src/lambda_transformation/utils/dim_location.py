@@ -1,8 +1,4 @@
-import boto3
 import pandas as pd
-from datetime import datetime as dt
-from src.lambda_transformation.transformation_lambda import get_ingestion_bucket_name
-from pprint import pprint
 
 
 def address_to_dim_location(address_dict):
@@ -42,15 +38,3 @@ def address_to_dim_location(address_dict):
     new_key = key.split("/")[0]+"/dim_location.csv"
     dim_location_dict = {"Key": new_key, "Body": dim_location}
     return dim_location_dict
-
-
-if __name__ == "__main__":
-    current_timestamp = dt.now().isoformat()
-    key = '2023-07-31T12:24:11.422525/address.csv'
-    s3 = boto3.client('s3')
-    response = s3.get_object(Bucket=get_ingestion_bucket_name(), Key=key)
-    body = pd.read_csv(response['Body'])
-    dict = {"Key": key, "Body": body}
-    # print(dict[key])
-    out = address_to_dim_location(dict)["Body"]
-    pprint(out)

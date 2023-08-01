@@ -53,9 +53,6 @@ resource "aws_cloudwatch_log_group" "transformation_log_group" {
 ####  TRANSFORMATION LAMBDA  ####
 #################################
 
-# locals {
-#   lambda_path = "../src/lambda_transformation"
-# }
 
 data "archive_file" "transformation_lambda_zip" {
   type        = "zip"
@@ -77,9 +74,8 @@ resource "aws_lambda_function" "transformation_lambda" {
   function_name = "transformation_lambda_handler"
   role          = aws_iam_role.transformation_lambda_role.arn
   handler       = "transformation_lambda.transformation_lambda_handler"
-  #handler may need to be "lambda_transformation.transformation.transformation_lambda_handler"
-  runtime = "python3.10"
-  timeout = "60"
+  runtime       = "python3.10"
+  timeout       = "60"
 }
 
 
