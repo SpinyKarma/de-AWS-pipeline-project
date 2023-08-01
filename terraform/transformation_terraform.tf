@@ -111,6 +111,23 @@ resource "aws_lambda_function" "transformation_lambda" {
 ###  TRANSFORMATION TRIGGER  ###
 ################################
 
+resource "aws_lambda_function_event_invoke_config" "transform_trigger" {
+  function_name     = aws_lambda_function.ingestion_lambda.function_name
+  destination_config{
+    on_success{
+      destination = aws_lambda_function.transformation_lambda.arn
+    }
+    on_failure{
+      destination = aws_sns_topic.notification_topic.arn
+    }
+  }
+}
+
+
+
+
+
+
 ########################
 ####  EVENT BRIDGE  ####
 # ########################
