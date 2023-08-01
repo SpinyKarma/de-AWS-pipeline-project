@@ -116,7 +116,7 @@ def connect(db="ingestion"):
             user=credentials['username'],
             password=credentials['password'],
             host=credentials['hostname'],
-            database=credentials['postgres'],
+            database='postgres',
             port=credentials['port']
         )
     else:
