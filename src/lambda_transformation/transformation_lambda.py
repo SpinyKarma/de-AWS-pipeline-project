@@ -4,8 +4,8 @@ from concurrent.futures import ThreadPoolExecutor
 import pandas as pd
 import csv
 import time
-from utils.dim_currency import create_currency_parquet
-from utils.dim_design import create_design_parquet
+from src.lambda_transformation.utils.dim_currency import create_currency_parquet
+from src.lambda_transformation.utils.dim_design import create_design_parquet
 
 
 def get_ingestion_bucket_name():
@@ -53,7 +53,6 @@ def get_csv_names(s3):
     return names
 
 
-
 def response_to_data_frame(response):
     """
         This funtion will convert get_object response for a CSV file
@@ -72,7 +71,6 @@ def response_to_data_frame(response):
 
 
 def process_to_parquet(csv_name):
-    
     """
         This function will process the csv into a parquet format
         and put the parquet into our processed data bucket.
@@ -90,8 +88,7 @@ def process_to_parquet(csv_name):
             create_currency_parquet(csv_name, ingestion_bucket, parquet_bucket)
         elif 'design' in csv_name:
             create_design_parquet(csv_name, ingestion_bucket, parquet_bucket)
-    
-    
+
     spreadsheet_name = csv_name[0:-4] + '.parquet'
     s3 = boto3.client('s3')
     response = s3.get_object(Bucket=get_ingestion_bucket_name(), Key=csv_name)

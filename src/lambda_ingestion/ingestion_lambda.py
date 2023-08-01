@@ -4,13 +4,7 @@ import json
 import pg8000.native as pg8000
 import csv
 from datetime import datetime as dt
-from io import StringIO
 import csv
-current_timestamp = dt.now()
-
-
-def get_current_timestamp():
-    return current_timestamp
 
 
 def ingestion_lambda_handler(event, context):
@@ -230,6 +224,7 @@ def csv_to_s3(Bucket, updated_table_list):
     Side-effects:
         Uploads the csvs with new data to S3.
     '''
+    current_timestamp = dt.now()
     s3_client = boto3.client("s3")
     for table in updated_table_list.keys():
         output_csv = updated_table_list[table]
