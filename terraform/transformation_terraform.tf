@@ -89,7 +89,7 @@ resource "aws_lambda_permission" "allow_cloudwatch_trigger_transformation" {
   statement_id  = "AllowExecutionFromCloudWatch"
   action        = "lambda:InvokeFunction"
   function_name = "transformation_lambda_handler"
-  principal     = "logs.${var.region}.amazonaws.com"
+  principal     = "logs.eu-west-2.amazonaws.com"
   source_arn    = data.aws_cloudwatch_log_group.ingestion_log_group.arn
 }
 
