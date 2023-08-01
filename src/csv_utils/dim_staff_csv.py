@@ -4,8 +4,6 @@ from src.table_utils.get_tables import (
 import csv
 from datetime import datetime as dt
 
-from pprint import pprint
-
 
 class CsvBuilder:
     """For creating CSV without writing to a file."""
