@@ -44,6 +44,13 @@ resource "aws_iam_role_policy_attachment" "ingestion_lambda_execute_policy_attac
   policy_arn = aws_iam_policy.lambda_execute_policy.arn
 }
 
+resource "aws_iam_role_policy_attachment" "ingestion_sns_publish_policy_attachment" {
+  role       = aws_iam_role.ingestion_lambda_role.name
+  policy_arn = aws_iam_policy.sns_publish_policy.arn
+}
+
+
+
 ######################
 ####  LOG GROUP   ####
 ######################

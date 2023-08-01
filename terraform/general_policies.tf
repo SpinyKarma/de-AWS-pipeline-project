@@ -48,6 +48,17 @@ data "aws_iam_policy_document" "lambda_policy_document" {
   }
 }
 
+data "aws_iam_policy_document" "sns_publish_policy_document" {
+  statement {
+
+    actions = ["sns:*"]
+
+    resources = [
+      "*"
+    ]
+  }
+}
+
 resource "aws_iam_policy" "s3_policy" {
   name_prefix = "s3-policy-"
   policy      = data.aws_iam_policy_document.s3_policy_document.json
@@ -67,3 +78,7 @@ resource "aws_iam_policy" "lambda_execute_policy" {
   policy      = data.aws_iam_policy_document.lambda_policy_document.json
 }
 
+resource "aws_iam_policy" "sns_publish_policy" {
+  name_prefix = "sns-publish-policy-"
+  policy      = data.aws_iam_policy_document.sns_publish_policy_document.json
+}
