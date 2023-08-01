@@ -12,34 +12,18 @@ import pytest
 SEPERATOR = '/'
 
 
-def get_ingestion_bucket_name():
-    '''Gets the name of the bucket to store raw data in using the prefix.'''
-    prefix = 'terrific-totes-ingestion-bucket'
-    buckets = boto3.client("s3").list_buckets().get("Buckets")
-    for bucket in buckets:
-        if prefix in bucket["Name"]:
-            name = bucket["Name"]
-            break
-    return name
-
-
 def test_get_tables_returns_list():
-    tables = get_tables(
-        get_bucket_name=get_ingestion_bucket_name)
-
+    tables = get_tables()
     assert isinstance(tables, list)
 
 
 @mock_s3
 def test_get_tables_returns_list_of_tables():
-    # snagged from test_timestamp.py
-    # create s3 bucket
-
-    def get_bucket_name():
-        return 'test'
-
     s3_client = boto3.client('s3', region_name='us-east-1')
-    s3_client.create_bucket(Bucket=get_bucket_name())
+
+    bucket_name = 'terrific-totes-ingestion-bucket20230725102602583400000001'
+    s3_client.create_bucket(
+        Bucket=bucket_name)
 
     '''
         Please do not change this without updating
@@ -77,22 +61,20 @@ def test_get_tables_returns_list_of_tables():
     for filename in filenames:
         s3_client.put_object(
             Body="",
-            Bucket=get_bucket_name(),
+            Bucket=bucket_name,
             Key=filename,
             ContentType='application/text',
         )
 
-    tables = get_tables(get_bucket_name)
+    tables = get_tables()
     assert tables == expected_result
 
 
 @mock_s3
 def test_get_most_recent_table():
-    def get_bucket_name():
-        return 'test'
-
     s3_client = boto3.client('s3', region_name='us-east-1')
-    s3_client.create_bucket(Bucket=get_bucket_name())
+    bucket_name = 'terrific-totes-ingestion-bucket20230725102602583400000001'
+    s3_client.create_bucket(Bucket=bucket_name)
     tablename = 'test-table.csv'
 
     """
@@ -110,41 +92,36 @@ def test_get_most_recent_table():
     for filename in files:
         s3_client.put_object(
             Body="",
-            Bucket=get_bucket_name(),
+            Bucket=bucket_name,
             Key=filename,
             ContentType='application/text',
         )
 
-    assert get_most_recent_table(
-        get_bucket_name, tablename) == files[0]
+    assert get_most_recent_table(tablename) == files[0]
 
 
 @mock_s3
 def test_get_tables_throws_empty_bucket_error():
-    def get_bucket_name():
-        return 'test'
-
+    bucket_name = 'terrific-totes-ingestion-bucket20230725102602583400000001'
     s3_client = boto3.client('s3', region_name='us-east-1')
-    s3_client.create_bucket(Bucket=get_bucket_name())
+    s3_client.create_bucket(Bucket=bucket_name)
 
     with pytest.raises(EmptyBucketError):
-        get_tables(get_bucket_name)
+        get_tables()
 
 
 @mock_s3
 def test_get_most_recent_table_throws_table_not_found_error():
-    def get_bucket_name():
-        return 'mybucket'
-
+    bucket_name = 'terrific-totes-ingestion-bucket20230725102602583400000001'
     s3_client = boto3.client('s3', region_name='us-east-1')
-    s3_client.create_bucket(Bucket=get_bucket_name())
+    s3_client.create_bucket(Bucket=bucket_name)
 
     s3_client.put_object(
         Body="",
-        Bucket=get_bucket_name(),
+        Bucket=bucket_name,
         Key=f'2000-01-01T00:00:00{SEPERATOR}table.csv',
         ContentType='application/text',
     )
 
     with pytest.raises(TableNotFoundError):
-        get_most_recent_table(get_bucket_name, 'does not exist')
+        get_most_recent_table('does not exist')
