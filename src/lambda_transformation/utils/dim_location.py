@@ -30,14 +30,10 @@ def address_to_dim_location(address_dict):
                             'phone']]
 
     # pandas rename not working for whatever reason, so just assigned all
-    dim_location.columns = ['location_id',
-                            'address_line_1',
-                            'address_line_2',
-                            'district',
-                            'city',
-                            'postal_code',
-                            'country',
-                            'phone']
+    dim_location.rename(
+        columns={
+            'address_id': 'location_id'},
+        inplace=True)
 
     # Replace the "NaN"s with "None"s
     dim_location = dim_location.where(pd.notnull(dim_location), None)
