@@ -1,7 +1,6 @@
 import boto3
 import datetime as dt
 from pprint import pprint
-import botocore.errorfactory
 
 SEPERATOR = '/'
 
@@ -123,14 +122,10 @@ def get_table_contents(table_name):
     '''
     s3_client = boto3.client('s3')
     ingestion_bucket = get_ingestion_bucket_name()
-
-    def get_bucket_name():
-        return ingestion_bucket
-
     key = get_most_recent_table(table_name)
 
     response = s3_client.get_object(
-        Bucket=get_bucket_name(),
+        Bucket=ingestion_bucket,
         Key=key
     )
 
