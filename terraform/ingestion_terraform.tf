@@ -39,6 +39,10 @@ resource "aws_iam_role_policy_attachment" "ingestion_cw_write_policy_attachment"
   policy_arn = aws_iam_policy.cw_write_policy.arn
 }
 
+resource "aws_iam_role_policy_attachment" "ingestion_lambda_execute_policy_attachment" {
+  role       = aws_iam_role.ingestion_lambda_role.name
+  policy_arn = aws_iam_policy.lambda_execute_policy.arn
+}
 
 ######################
 ####  LOG GROUP   ####

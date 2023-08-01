@@ -37,17 +37,33 @@ data "aws_iam_policy_document" "cw_ingestion_write_policy_document" {
   }
 }
 
+data "aws_iam_policy_document" "lambda_policy_document" {
+  statement {
+
+    actions = ["lambda:*"]
+
+    resources = [
+      "*"
+    ]
+  }
+}
+
 resource "aws_iam_policy" "s3_policy" {
   name_prefix = "s3-policy-"
   policy      = data.aws_iam_policy_document.s3_policy_document.json
 }
 
 resource "aws_iam_policy" "secret_read_policy" {
-  name_prefix = "secret-read-policy-ingestion-"
+  name_prefix = "secret-read-policy-"
   policy      = data.aws_iam_policy_document.secret_read_policy_document.json
 }
 
 resource "aws_iam_policy" "cw_write_policy" {
-  name_prefix = "cw-write-policy-ingestion-"
+  name_prefix = "cw-write-policy-"
   policy      = data.aws_iam_policy_document.cw_ingestion_write_policy_document.json
 }
+resource "aws_iam_policy" "lambda_execute_policy" {
+  name_prefix = "lambda-execute-policy-"
+  policy      = data.aws_iam_policy_document.lambda_policy_document.json
+}
+
