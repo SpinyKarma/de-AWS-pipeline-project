@@ -90,13 +90,13 @@ resource "aws_lambda_permission" "allow_cloudwatch_trigger_transformation" {
   action        = "lambda:InvokeFunction"
   function_name = "transformation_lambda_handler"
   principal     = "logs.eu-west-2.amazonaws.com"
-  source_arn    = data.aws_cloudwatch_log_group.ingestion_log_group.arn
+  source_arn    = aws_cloudwatch_log_group.ingestion_log_group.arn
 }
 
 resource "aws_cloudwatch_log_subscription_filter" "transformation_trigger" {
-  depends_on      = ["aws_lambda_permission.allow_cloudwatch_trigger_transformation"]
+  depends_on      = [aws_lambda_permission.allow_cloudwatch_trigger_transformation]
   name            = "transformation_trigger"
-  log_group_name  = data.aws_cloudwatch_log_group.ingestion_log_group.name
+  log_group_name  = aws_cloudwatch_log_group.ingestion_log_group.name
   filter_pattern  = "END"
   destination_arn = aws_lambda_function.ingestion_lambda.arn
   distribution    = "ByLogStream"
