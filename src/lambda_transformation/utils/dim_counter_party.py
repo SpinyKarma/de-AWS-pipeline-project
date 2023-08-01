@@ -7,7 +7,7 @@ from datetime import datetime as dt
 
 # s3 = boto3.client('s3')
 
-def generate_counter_party(address_dict,counterparty_dict):
+def counter_party_address_to_dim_counter_party(counterparty_dict, address_dict):
     
     key=address_dict['Key']
     address=address_dict['Body']
@@ -48,17 +48,3 @@ def generate_counter_party(address_dict,counterparty_dict):
    # make dict and return it 
     dim_counterparty_dict={"Key": new_key,"Body": dim_counterparty}  
     return dim_counterparty_dict
-
-   
-def get_bucket_name():
-    return 'terrific-totes-ingestion-bucket20230725102602583400000001'
-
-keyList = [
-    get_most_recent_table(get_bucket_name, 'address.csv'),
-    get_most_recent_table(get_bucket_name, 'counterparty.csv')
-    ]
-    
-generate_counter_party(
-    keyList,'terrific-totes-ingestion-bucket20230725102602583400000001','terrific-totes-processed-bucket20230725102602584600000002'
-    )
-
