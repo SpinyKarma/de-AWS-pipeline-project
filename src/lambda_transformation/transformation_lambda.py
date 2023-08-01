@@ -122,7 +122,6 @@ def transformation_lambda_handler(event, context):
             ''')
         return
 
-
     """
         The buckets exist, so let's
         grab our processed data:
@@ -141,9 +140,3 @@ def transformation_lambda_handler(event, context):
         executor.map(process_to_parquet, range(max_workers), csv_names)
 
     print('Work has finished')
-
-
-    
-
-
-

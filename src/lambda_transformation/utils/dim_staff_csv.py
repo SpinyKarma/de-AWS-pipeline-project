@@ -1,131 +1,70 @@
-from src.table_utils.get_tables import (
-    get_most_recent_table, get_table_contents)
-
-import csv
+import src.table_utils.get_tables as util
+from pprint import pprint
+import pandas as pd
+import io
 from datetime import datetime as dt
 
 
-class CsvBuilder:
-    """For creating CSV without writing to a file."""
-
-    def __init__(self):
-        self.rows = []
-
-    def write(self, row):
-        self.rows.append(row)
-
-    def as_txt(self):
-        return ''.join(self.rows)
-
-
-def csv_to_dict(csv_text):
+def create_dim_staff_csv(staff_dict, department_dict):
     '''
-        Converts a CSV in text-form to a dictionary of records,
-        with the primary key being the first field, which should be the ID
-        of the data.
+        Will return a KB dictionary in the form:
+            'Key' - dim_staff.csv prefixed with a timestamp
+            'Body' - our merged data frame according to the schema
 
-        Example: staff_id : { staff data ...}, and so on
-    '''
-    reader = csv.DictReader(csv_text)
-    id_fieldname = reader.fieldnames[0]
-    rest_fields = reader.fieldnames[1:]
+    Args:
+        staff_dict - A KB dictionary
+        department_dict - A KB dictionary
 
-    dictionary = {}
-    for row in reader:
-        rest_data = {field: row[field] for field in rest_fields}
-        dictionary[row[id_fieldname]] = rest_data
-
-    return dictionary
-
-
-def table_to_dict(table):
-    timestamped_table = get_most_recent_table(table)
-    table_contents = get_table_contents(timestamped_table)
-    return csv_to_dict(table_contents['body'])
-
-
-def create_dim_staff_csv():
-    '''
-        This function will generate the dim_staff csv.
-
-    Returns:
-        A dictionary in the form
-            'name' which is {timestamp}/dim_staff.csv
-            'body' which is our table as a string
+    Notes:
+        The timestamp is the most recent timestamp from the two arguments.
     '''
 
-    '''
-        Create a timestamped name as according to the directive
-    '''
-    name = f'{dt.now().isoformat()}/dim_staff.csv'
+    staff_key, staff_df = staff_dict['Key'], staff_dict['Body']
+    dept_key, dept_df = department_dict['Key'], department_dict['Body']
 
     '''
-        Load our tables
+        Find the most recent timestamp
     '''
-    staff = table_to_dict('staff.csv')
-    departments = table_to_dict('department.csv')
+    staff_timestamp = dt.fromisoformat(staff_key.split('/')[0])
+    dept_timestamp = dt.fromisoformat(dept_key.split('/')[0])
+    timestamps = [staff_timestamp, dept_timestamp]
+    timestamps.sort(reverse=True)
+    timestamp = timestamps[0].isoformat()
 
     '''
-        We store our data in this dictionary,
-        this is a dictionary of dictionaries in the form:
+        Create dim_staff by merging the dataframes
+    '''
+    dim_staff = staff_df.merge(dept_df, on='department_id', how='left')
+    dim_staff = dim_staff[[
+        'staff_id',
+        'first_name',
+        'last_name',
+        'email_address',
+        'department_name',
+        'location',
+    ]]
 
-        ...
-        (staff_id) : {
-            fields...
-        },
-        ...
+    return {'Key': f'{timestamp}/dim_staff.csv', 'Body': dim_staff}
 
-        Meaning that it should be accessed like:
-        dim_staff[staff_id],
-    '''
-    dim_staff = {}
 
-    '''
-        Create dim_staff by merging the staff and department tables
-    '''
-    for id in staff.keys():
-        dim_staff[id] = staff[id]
-        dept_id = dim_staff[id]['department_id']
-        dept = departments[dept_id]
-        dim_staff[id]['department_name'] = dept['department_name']
-        dim_staff[id]['location'] = dept['location']
+if __name__ == "__main__":
+    staff = util.get_table_contents('staff.csv')
+    staff_wrapper = io.StringIO(staff['body'])
+    staff_df = pd.read_csv(staff_wrapper)
 
-        '''
-            These fields are not included in the schema
-        '''
-        del dim_staff[id]['department_id']
-        del dim_staff[id]['created_at']
-        del dim_staff[id]['last_updated']
+    dept = util.get_table_contents('department.csv')
+    dept_wrapper = io.StringIO(dept['body'])
+    dept_df = pd.read_csv(dept_wrapper)
 
-    '''
-        Keep track of our fields for our CSV
-    '''
-    dim_staff_csv_fields = ['staff_id']
-    for field in dim_staff.keys():
-        dim_staff_csv_fields.append(field)
+    current_timestamp = dt.now().isoformat()
 
-    '''
-        Create the rows of our data, dim_staff_csv will be
-        an array of records
-    '''
-    dim_staff_csv = []
-    for id in dim_staff.keys():
-        staff = dim_staff[id]
-        row = {}
-        row['staff_id'] = id
-        for prop in staff.keys():
-            row[prop] = staff[prop]
-        dim_staff_csv.append(row)
+    staff_dict = {'Key': f'{current_timestamp}/staff.csv', 'Body': staff_df}
+    department_dict = {
+        'Key': f'{current_timestamp}/department.csv', 'Body': dept_df}
 
-    '''
-        Build the string according to the directive
-    '''
-    csv_builder = CsvBuilder()
-    fields = [field for field in dim_staff_csv[0].keys()]
-    csv_writer = csv.writer(csv_builder)
-    csv_writer.writerow(fields)
-    rows = [[row[key] for key in fields] for row in dim_staff_csv]
-    csv_writer.writerows(rows)
+    result = create_dim_staff_csv(
+        staff_dict=staff_dict,
+        department_dict=department_dict
+    )
 
-    # name is timestamped
-    return {'name': name,  'body': csv_builder.as_txt()}
+    pprint(result)
