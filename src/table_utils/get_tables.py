@@ -1,7 +1,6 @@
 import boto3
 import datetime as dt
 from pprint import pprint
-import botocore.errorfactory
 
 SEPERATOR = '/'
 
@@ -114,23 +113,19 @@ def get_table_contents(table_name):
         packaged in a dictionary
 
     Args:
-        table_name - the name of the table (not timestamped)
+        table_name - the name of the table (timestamped)
 
     Returns
         A dictionary of form:
-        -   name: The name of the table
+        -   name: The name of the table (timestamped)
         -   body: The CSV contents of the table as a string
     '''
     s3_client = boto3.client('s3')
     ingestion_bucket = get_ingestion_bucket_name()
-
-    def get_bucket_name():
-        return ingestion_bucket
-
     key = get_most_recent_table(table_name)
 
     response = s3_client.get_object(
-        Bucket=get_bucket_name(),
+        Bucket=ingestion_bucket,
         Key=key
     )
 
