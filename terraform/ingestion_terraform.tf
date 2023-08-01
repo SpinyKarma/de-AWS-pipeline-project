@@ -183,17 +183,6 @@ resource "aws_cloudwatch_metric_alarm" "no_timestamp_error_alarm" {
   alarm_actions = [aws_sns_topic.notification_topic.arn]
 }
 
-resource "aws_cloudwatch_log_metric_filter" "ingestion_end" {
-  name           = "ingestion_end"
-  pattern        = "END"
-  log_group_name = "/aws/lambda/${aws_lambda_function.ingestion_lambda.function_name}"
-
-  metric_transformation {
-    name      = "ingestion_end"
-    namespace = "ingestion_end"
-    value     = "1"
-  }
-}
 
 resource "aws_cloudwatch_log_metric_filter" "exception_error_metric" {
   name           = "exception_error"
@@ -219,3 +208,17 @@ resource "aws_cloudwatch_metric_alarm" "exception_error_alarm" {
 
   alarm_actions = [aws_sns_topic.notification_topic.arn]
 }
+
+resource "aws_cloudwatch_log_metric_filter" "ingestion_end" {
+  name           = "ingestion_end"
+  pattern        = "END"
+  log_group_name = "/aws/lambda/${aws_lambda_function.ingestion_lambda.function_name}"
+
+  metric_transformation {
+    name      = "ingestion_end"
+    namespace = "ingestion_end"
+    value     = "1"
+  }
+}
+
+
