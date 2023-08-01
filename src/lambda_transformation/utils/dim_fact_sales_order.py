@@ -1,15 +1,11 @@
-import boto3
-import pandas as pd 
-from datetime import datetime as dt
-from src.lambda_transformation.transformation_lambda import get_ingestion_bucket_name
-from pprint import pprint
+import pandas as pd
 
 def sales_order_to_fact_sales_order(sales_order_dict):
     '''Takes all sales orders from sales_order csv and remaps to dim_sales_order schema.
     
     Args:
         sales_order_dict: a dict with two key/val pairs:
-            "Key": the key of the sales csv
+            "Key": the key of the sales_order csv
             "Body": a panda dataframe of the csv contents.
     
     Returns:
@@ -66,13 +62,3 @@ def sales_order_to_fact_sales_order(sales_order_dict):
     new_key = key.split('/')[0]+"/fact_sales_order.csv"
     fact_sales_order_dict = {"Key": new_key, "Body": fact_sales_order}
     return fact_sales_order_dict
-
-if __name__ == "__main__":
-    key = '2023-07-31T12:24:11.422525/sales_order.csv'
-    s3 = boto3.client('s3')
-    response = s3.get_object(Bucket=get_ingestion_bucket_name(), Key=key)
-    body = pd.read_csv(response['Body'])
-    dict = {"Key": key, "Body": body}
-    # print(dict[key])
-    out = sales_order_to_fact_sales_order(dict)
-    pprint(out)
