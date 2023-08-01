@@ -122,7 +122,13 @@ resource "aws_lambda_function_event_invoke_config" "transform_trigger" {
     }
   }
 }
-
+resource "aws_lambda_permission" "transformation_lambda_event" {
+  statement_id  = "AllowExecutionFromIngestionLambda"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.transformation_lambda.function_name
+  principal     = "lambda.amazonaws.com"
+  source_arn    = aws_lambda_function.ingestion_lambda.arn
+}
 
 
 
