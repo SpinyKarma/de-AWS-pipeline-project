@@ -1,9 +1,0 @@
-  department_id department_name    location         manager                  created_at                last_updated
-0             1           Sales  Manchester    Richard Roma  2022-11-03 14:20:49.962000  2022-11-03 14:20:49.962000
-1             2      Purchasing  Manchester  Naomi Lapaglia  2022-11-03 14:20:49.962000  2022-11-03 14:20:49.962000
-2             3      Production       Leeds    Chester Ming  2022-11-03 14:20:49.962000  2022-11-03 14:20:49.962000
-3             4        Dispatch        Leds      Mark Hanna  2022-11-03 14:20:49.962000  2022-11-03 14:20:49.962000
-4             5         Finance  Manchester  Jordan Belfort  2022-11-03 14:20:49.962000  2022-11-03 14:20:49.962000
-5             6      Facilities  Manchester  Shelley Levene  2022-11-03 14:20:49.962000  2022-11-03 14:20:49.962000
-6             7  Communications       Leeds       Ann Blake  2022-11-03 14:20:49.962000  2022-11-03 14:20:49.962000
-7             8              HR       Leeds      James Link  2022-11-03 14:20:49.962000  2022-11-03 14:20:49.962000
