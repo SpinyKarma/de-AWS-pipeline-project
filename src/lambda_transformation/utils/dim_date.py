@@ -1,4 +1,5 @@
 import pandas as pd
+from datetime import datetime as dt
 
 
 def generate_dim_date():
@@ -14,7 +15,7 @@ def generate_dim_date():
 
     # Generate the range of dates to populate
     dates = pd.DataFrame(
-        {"date_id": pd.date_range("2020-01-01", "2030-12-31")})
+        {"date_id": pd.date_range("2020-01-01", "2039-12-31")})
 
     dates['year'] = dates.date_id.dt.year
     dates['month'] = dates.date_id.dt.month
@@ -24,10 +25,12 @@ def generate_dim_date():
     dates['month_name'] = dates.date_id.dt.month_name()
     dates['quarter'] = dates.date_id.dt.quarter
 
-    dim_date_dict = {"dim_date.csv": dates}
+    # Add timestamp for consistent naming scheme with other files, but earlier than all other timesamps so as not to interfere
+    timestamp = dt(2020, 1, 1).isoformat()
+    dim_date_dict = {"Key": f"{timestamp}/dim_date.csv", "Body": dates}
     return dim_date_dict
 
 
-# if __name__ == "__main__":
-#     out = generate_dim_date()
-#     print(out["dim_date.csv"])
+if __name__ == "__main__":
+    out = generate_dim_date()
+    print(out["Body"])
