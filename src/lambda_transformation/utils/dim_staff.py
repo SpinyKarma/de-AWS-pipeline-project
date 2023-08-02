@@ -19,6 +19,8 @@ def create_dim_staff_csv(staff_dict, department_dict):
         The timestamp is the most recent timestamp from the two arguments.
     '''
 
+    pprint(staff_dict)
+
     staff_key, staff_df = staff_dict['Key'], staff_dict['Body']
     dept_key, dept_df = department_dict['Key'], department_dict['Body']
 
@@ -44,4 +46,6 @@ def create_dim_staff_csv(staff_dict, department_dict):
         'location',
     ]]
 
-    return {'Key': f'{timestamp}/dim_staff.csv', 'Body': dim_staff}
+    return {'Key': f'{timestamp}/dim_staff.csv',
+            'Body': dim_staff,
+            'Timestamp': timestamp}
