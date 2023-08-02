@@ -78,6 +78,6 @@ jobs:
         run: terraform apply -auto-approve
 
       # second apply because of weird terraform staging interaction with deployment of lambdas
-      - name: Second terraform apply to ensure deployment
-        working-directory: terraform
-        run: terraform apply -auto-approve
+      # - name: Second terraform apply to ensure deployment
+      #   working-directory: terraform
+      #   run: terraform apply -auto-approve

@@ -80,7 +80,7 @@ resource "aws_s3_object" "ingestion_lambda_code" {
 
 resource "aws_lambda_function" "ingestion_lambda" {
   s3_bucket        = aws_s3_bucket.code_bucket.bucket
-  s3_key           = "lambda_ingestion.zip"
+  s3_key           = aws_s3_object.ingestion_lambda_code.id
   function_name    = "ingestion_lambda_handler"
   role             = aws_iam_role.ingestion_lambda_role.arn
   handler          = "ingestion_lambda.ingestion_lambda_handler"
