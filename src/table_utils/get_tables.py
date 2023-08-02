@@ -107,7 +107,7 @@ def get_most_recent_table(table_name):
     raise TableNotFoundError(table_name)
 
 
-def get_table_contents(table_name):
+def read_table(table_name):
     '''
         Will return the contents of the most recent table
         packaged in a dictionary

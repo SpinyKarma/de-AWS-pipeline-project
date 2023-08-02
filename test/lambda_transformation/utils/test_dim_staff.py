@@ -11,7 +11,7 @@ def test_timestamp():
 
 
 if __name__ == '__main__':
-    staff = tables.get_table_contents('staff.csv')
-    depts = tables.get_table_contents('department.csv')
+    staff = tables.read_table('staff.csv')
+    depts = tables.read_table('department.csv')
 
     print(staff)
