@@ -1,6 +1,6 @@
 import boto3
 import datetime as dt
-# from pprint import pprint
+import pandas as pd
 
 SEPERATOR = '/'
 
@@ -129,12 +129,12 @@ def get_table_contents(table_name):
         Key=key
     )
 
-    body = '\n'.join(response['Body'].read().decode('utf-8').splitlines())
+    dataframe = pd.read_csv(response['Body'])
 
     return {
         'Name': table_name,
         'Key': key,
-        'Body': body
+        'Body': dataframe
     }
 
 
