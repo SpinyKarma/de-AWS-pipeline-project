@@ -13,5 +13,5 @@ def test_timestamp():
 if __name__ == '__main__':
     staff = tables.read_table('staff.csv')
     depts = tables.read_table('department.csv')
-
-    print(staff)
+    result = util.create_dim_staff_csv(staff, depts)
+    print(result)
