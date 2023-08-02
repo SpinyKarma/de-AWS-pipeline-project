@@ -1,5 +1,5 @@
 import boto3
-import datetime as dt
+from datetime import datetime as dt
 import pandas as pd
 
 SEPERATOR = '/'
@@ -69,7 +69,7 @@ def get_tables():
     def get_key_timestamp(key):
         split = key.split(SEPERATOR)
         timestamp_str = split[0]
-        return dt.datetime.fromisoformat(timestamp_str).timestamp()
+        return dt.fromisoformat(timestamp_str).timestamp()
 
     """
         Note: Reverse ordering is set to true as this puts the
@@ -130,9 +130,11 @@ def read_table(table_name):
     )
 
     dataframe = pd.read_csv(response['Body'])
+    timestamp = dt.fromisoformat(key.split(SEPERATOR)[0])
 
     return {
         'Name': table_name,
+        'Timestamp': timestamp,
         'Key': key,
         'Body': dataframe
     }
