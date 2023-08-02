@@ -1,7 +1,8 @@
 import pytest
 import pandas as pd
-import src.lambda_transformation.utils.dim_fact_sales_order as dim_sales  # 
-import src.table_utils.get_tables as tables
+import src.lambda_transformation.utils.dim_fact_sales_order as dim_sales
+import src.lambda_transformation.utils.get_tables as tables
+
 
 def test_sales_order_to_fact_sales_order():
     '''
@@ -31,6 +32,7 @@ def test_sales_order_to_fact_sales_order():
     assert result['Key'] == expected_key
     assert isinstance(result['Body'], pd.DataFrame)
 
+
 def test_sales_order_to_fact_sales_order_missing_columns():
     '''
         Test to see if it raises KeyError if missing required Body values.
@@ -55,6 +57,7 @@ def test_sales_order_to_fact_sales_order_missing_columns():
     with pytest.raises(KeyError):
         dim_sales.sales_order_to_fact_sales_order(sales_order_dict)
 
+
 def test_sales_order_to_fact_sales_order_empty_dataframe():
     '''
         Tests to see key error is raised if ran with empty dataframe.
@@ -66,6 +69,7 @@ def test_sales_order_to_fact_sales_order_empty_dataframe():
 
     with pytest.raises(KeyError):
         dim_sales.sales_order_to_fact_sales_order(sales_order_dict)
+
 
 if __name__ == '__main__':
     sales_data = tables.read_table('sales_order.csv')
