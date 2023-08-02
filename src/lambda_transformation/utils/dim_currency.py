@@ -1,4 +1,5 @@
 import ccy
+import pandas as pd
 
 
 def currency_to_dim_currency(currency_dict):
@@ -16,6 +17,7 @@ def currency_to_dim_currency(currency_dict):
     dim_currency = currency[['currency_id',
                              'currency_code']]
     dim_currency['currency_name'] = currency_names
+    dim_currency_df = pd.DataFrame(dim_currency)
     new_key = key.split('/')[0]+'/dim_currency.csv'
-    dim_currency_dict = {'Key': new_key, 'Body': dim_currency}
+    dim_currency_dict = {'Key': new_key, 'Body': dim_currency_df}
     return dim_currency_dict
