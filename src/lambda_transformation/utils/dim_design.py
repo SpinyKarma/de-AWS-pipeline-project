@@ -6,18 +6,6 @@ def design_to_dim_design(design_dict):
                          'design_name',
                          'file_location',
                          'file_name']]
-    
+
     dim_design_dict = {'Key': new_key, 'Body': dim_design}
     return dim_design_dict
-
-
-
-
-    
-    
-    
-    
-
-
-
-

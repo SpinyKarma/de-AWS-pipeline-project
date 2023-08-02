@@ -1,6 +1,6 @@
 import boto3
 import datetime as dt
-from pprint import pprint
+# from pprint import pprint
 
 SEPERATOR = '/'
 
