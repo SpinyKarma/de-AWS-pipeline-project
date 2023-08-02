@@ -28,6 +28,8 @@ def create_dim_staff_csv(staff_dict, department_dict):
     timestamp.sort(reverse=True)
     timestamp = timestamp[0]
 
+    isoformat_timestamp = timestamp.isoformat()
+
     '''
         Create dim_staff by merging the dataframes
     '''
@@ -41,6 +43,6 @@ def create_dim_staff_csv(staff_dict, department_dict):
         'location',
     ]]
 
-    return {'Key': f'{timestamp}/dim_staff.csv',
+    return {'Key': f'{isoformat_timestamp}/dim_staff.csv',
             'Body': dim_staff,
             'Timestamp': timestamp}

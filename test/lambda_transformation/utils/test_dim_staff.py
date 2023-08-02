@@ -16,10 +16,15 @@ def test_timestamp_is_preserved():
     recent_timestamp = recent_timestamp[0]
     result_timestamp = result['Timestamp']
 
-    print('recent_timestamp:', recent_timestamp, type(recent_timestamp))
-    print('result_timestamp:', result_timestamp, type(result_timestamp))
-
+    '''
+        Is the timestamp the most recent?
+    '''
     assert recent_timestamp == result_timestamp
+
+    '''
+        Is the key prefixed with the timestamp in isoformat?
+    '''
+    assert result['Key'].startswith(recent_timestamp.isoformat())
 
 
 test_timestamp_is_preserved()
