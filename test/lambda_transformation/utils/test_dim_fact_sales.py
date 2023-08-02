@@ -1,6 +1,5 @@
 import pytest
 import pandas as pd
-import numpy as np
 import src.lambda_transformation.utils.dim_fact_sales_order as dim_sales  # 
 import src.table_utils.get_tables as tables
 
@@ -57,6 +56,9 @@ def test_sales_order_to_fact_sales_order_missing_columns():
         dim_sales.sales_order_to_fact_sales_order(sales_order_dict)
 
 def test_sales_order_to_fact_sales_order_empty_dataframe():
+    '''
+        Tests to see key error is raised if ran with empty dataframe.
+    '''
     sales_order_dict = {
         'Key': 'sales_order.csv',
         'Body': pd.DataFrame()
@@ -69,7 +71,6 @@ if __name__ == '__main__':
     sales_data = tables.read_table('sales_order.csv')
     result = dim_sales.sales_order_to_fact_sales_order(sales_data)
     print(result)
-
 
 '''
             'sales_order_id': [3539],
