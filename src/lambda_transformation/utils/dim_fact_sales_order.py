@@ -1,6 +1,5 @@
 import pandas as pd
 
-
 def sales_order_to_fact_sales_order(sales_order_dict):
     '''Takes all sales orders from sales_order csv and remaps to
        dim_sales_order schema.
