@@ -17,7 +17,7 @@ def ingestion_lambda_handler(event, context):
             'counterparty',
             'currency',
             'department',
-            'design'
+            'design',
             'sales_order',
             'staff',
         ]
@@ -26,7 +26,7 @@ def ingestion_lambda_handler(event, context):
         csvs_to_update = extract_table_to_csv(table_names, last)
         csv_to_s3(bucket_name, csvs_to_update)
     except TableIngestionError as error:
-        logging.error(f'Table Ingestion Error: {error}')
+        logging.error(f'Table Ingestion Error: {error.message}')
         raise error
     except InvalidCredentialsError as error:
         logging.error(f'Invalid Credentials Error: {error}')
@@ -53,7 +53,8 @@ def get_ingestion_bucket_name():
 
 
 class TableIngestionError(Exception):
-    pass
+    def __init__(self, message=""):
+        self.message = message
 
 
 class NonTimestampedCSVError(Exception):
@@ -191,7 +192,7 @@ def extract_table_to_csv(table_list, last_timestamp):
                 query_str += f'last_updated > {f_timestamp};'
                 result = db.run(query_str)
             except Exception:
-                raise TableIngestionError
+                raise TableIngestionError(f"Error querying {table_name} table")
             column_names = [column['name'] for column in db.columns]
             rows = [dict(zip(column_names, row)) for row in result]
             csv_builder = CsvBuilder()

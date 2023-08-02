@@ -26,7 +26,7 @@ def transformation_lambda_handler_stage_2(event, context):
     # List all contents in a bucket, recursively
 
     bucket_contents = s3.get_file_info(fs.FileSelector(
-        parquet_bucket(), recursive=True))
+        parquet_bucket, recursive=True))
 
     # Filter out all entries that are not files and do not end with .csv
 
