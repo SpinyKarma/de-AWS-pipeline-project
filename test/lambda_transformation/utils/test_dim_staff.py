@@ -1,5 +1,5 @@
 import src.lambda_transformation.utils.dim_staff as util
-import src.table_utils.get_tables as tables
+import src.lambda_transformation.utils.get_tables as tables
 from pandas import DataFrame
 
 
