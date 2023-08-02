@@ -37,6 +37,17 @@ data "aws_iam_policy_document" "cw_ingestion_write_policy_document" {
   }
 }
 
+data "aws_iam_policy_document" "cw_transformation_write_policy_document" {
+  statement {
+
+    actions = ["logs:CreateLogStream", "logs:PutLogEvents"]
+
+    resources = [
+      "${aws_cloudwatch_log_group.transformation_log_group.arn}:*"
+    ]
+  }
+}
+
 data "aws_iam_policy_document" "lambda_policy_document" {
   statement {
 
@@ -69,10 +80,16 @@ resource "aws_iam_policy" "secret_read_policy" {
   policy      = data.aws_iam_policy_document.secret_read_policy_document.json
 }
 
-resource "aws_iam_policy" "cw_write_policy" {
-  name_prefix = "cw-write-policy-"
+resource "aws_iam_policy" "cw_ingestion_write_policy" {
+  name_prefix = "cw-write-policy-ingestion-"
   policy      = data.aws_iam_policy_document.cw_ingestion_write_policy_document.json
 }
+
+resource "aws_iam_policy" "cw_transformation_write_policy" {
+  name_prefix = "cw-write-policy-transformation-"
+  policy      = data.aws_iam_policy_document.cw_transformation_write_policy_document.json
+}
+
 resource "aws_iam_policy" "lambda_execute_policy" {
   name_prefix = "lambda-execute-policy-"
   policy      = data.aws_iam_policy_document.lambda_policy_document.json
