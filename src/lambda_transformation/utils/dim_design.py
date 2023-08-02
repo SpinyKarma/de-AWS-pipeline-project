@@ -1,3 +1,7 @@
+import pandas as pd
+
+
+
 def design_to_dim_design(design_dict):
     key = design_dict['Key']
     design = design_dict['Body']
@@ -7,5 +11,6 @@ def design_to_dim_design(design_dict):
                          'file_location',
                          'file_name']]
 
+   # dim_design_df = pd.DataFrame(dim_design)
     dim_design_dict = {'Key': new_key, 'Body': dim_design}
     return dim_design_dict
