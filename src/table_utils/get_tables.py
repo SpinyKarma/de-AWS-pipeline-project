@@ -1,6 +1,6 @@
 import boto3
 import datetime as dt
-# from pprint import pprint
+import pandas as pd
 
 SEPERATOR = '/'
 
@@ -107,7 +107,7 @@ def get_most_recent_table(table_name):
     raise TableNotFoundError(table_name)
 
 
-def get_table_contents(table_name):
+def read_table(table_name):
     '''
         Will return the contents of the most recent table
         packaged in a dictionary
@@ -129,11 +129,12 @@ def get_table_contents(table_name):
         Key=key
     )
 
-    body = '\n'.join(response['Body'].read().decode('utf-8').splitlines())
+    dataframe = pd.read_csv(response['Body'])
 
     return {
-        'name': table_name,
-        'body': body
+        'Name': table_name,
+        'Key': key,
+        'Body': dataframe
     }
 
 

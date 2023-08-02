@@ -45,26 +45,3 @@ def create_dim_staff_csv(staff_dict, department_dict):
     ]]
 
     return {'Key': f'{timestamp}/dim_staff.csv', 'Body': dim_staff}
-
-
-if __name__ == "__main__":
-    staff = util.get_table_contents('staff.csv')
-    staff_wrapper = io.StringIO(staff['body'])
-    staff_df = pd.read_csv(staff_wrapper)
-
-    dept = util.get_table_contents('department.csv')
-    dept_wrapper = io.StringIO(dept['body'])
-    dept_df = pd.read_csv(dept_wrapper)
-
-    current_timestamp = dt.now().isoformat()
-
-    staff_dict = {'Key': f'{current_timestamp}/staff.csv', 'Body': staff_df}
-    department_dict = {
-        'Key': f'{current_timestamp}/department.csv', 'Body': dept_df}
-
-    result = create_dim_staff_csv(
-        staff_dict=staff_dict,
-        department_dict=department_dict
-    )
-
-    pprint(result)
