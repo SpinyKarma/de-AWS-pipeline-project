@@ -133,6 +133,7 @@ def get_table_contents(table_name):
 
     return {
         'name': table_name,
+        'timestamped_name': key,
         'body': body
     }
 
