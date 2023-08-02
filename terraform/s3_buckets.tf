@@ -1,6 +1,6 @@
-######################
-####  S3 BUCKETS  ####
-######################
+#######################
+####  S3 BUCKETS  #####
+#######################
 
 resource "aws_s3_bucket" "raw_csv_data_bucket" {
   bucket_prefix = "terrific-totes-ingestion-bucket"
