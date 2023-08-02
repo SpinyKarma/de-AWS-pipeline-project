@@ -82,7 +82,7 @@ resource "aws_lambda_function" "transformation_lambda" {
   runtime          = "python3.10"
   timeout          = "60"
   source_code_hash = data.archive_file.transformation_lambda_zip.output_base64sha256
-  layers           = [aws_lambda_layer_version.lambda_requirements_layer.arn]
+  layers           = [aws_lambda_layer_version.lambda_requirements_layer.arn, aws_lambda_layer_version.lambda_requirements_layer_2.arn]
 }
 
 ################################
