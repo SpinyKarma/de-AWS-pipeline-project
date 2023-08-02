@@ -19,19 +19,16 @@ def create_dim_staff_csv(staff_dict, department_dict):
         The timestamp is the most recent timestamp from the two arguments.
     '''
 
-    pprint(staff_dict)
-
-    staff_key, staff_df = staff_dict['Key'], staff_dict['Body']
-    dept_key, dept_df = department_dict['Key'], department_dict['Body']
+    staff_df, dept_df = staff_dict['Body'], department_dict['Body']
 
     '''
         Find the most recent timestamp
     '''
-    staff_timestamp = dt.fromisoformat(staff_key.split('/')[0])
-    dept_timestamp = dt.fromisoformat(dept_key.split('/')[0])
-    timestamps = [staff_timestamp, dept_timestamp]
-    timestamps.sort(reverse=True)
-    timestamp = timestamps[0].isoformat()
+    timestamp = [staff_dict['Timestamp'], department_dict['Timestamp']]
+    timestamp.sort(reverse=True)
+    timestamp = timestamp[0]
+
+    isoformat_timestamp = timestamp.isoformat()
 
     '''
         Create dim_staff by merging the dataframes
@@ -46,6 +43,6 @@ def create_dim_staff_csv(staff_dict, department_dict):
         'location',
     ]]
 
-    return {'Key': f'{timestamp}/dim_staff.csv',
+    return {'Key': f'{isoformat_timestamp}/dim_staff.csv',
             'Body': dim_staff,
             'Timestamp': timestamp}

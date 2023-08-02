@@ -14,10 +14,17 @@ def test_timestamp_is_preserved():
     ]
     recent_timestamp.sort(reverse=True)
     recent_timestamp = recent_timestamp[0]
-
     result_timestamp = result['Timestamp']
 
+    '''
+        Is the timestamp the most recent?
+    '''
     assert recent_timestamp == result_timestamp
+
+    '''
+        Is the key prefixed with the timestamp in isoformat?
+    '''
+    assert result['Key'].startswith(recent_timestamp.isoformat())
 
 
 test_timestamp_is_preserved()
