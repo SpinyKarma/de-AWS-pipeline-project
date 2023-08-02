@@ -5,11 +5,15 @@ import pandas as pd
 import csv
 # import time
 # from pprint import pprint
-from utils.dim_counter_party import counter_party_address_to_dim_counterparty as cpatdc
+from utils.dim_counter_party import (
+    counter_party_address_to_dim_counterparty as cpatdc
+)
 from utils.dim_currency import currency_to_dim_currency as ctdc
 from utils.dim_date import generate_dim_date as gdd
 from utils.dim_design import design_to_dim_design as dtdd
-from utils.dim_fact_sales_order import sales_order_to_fact_sales_order as sotfso
+from utils.dim_fact_sales_order import (
+    sales_order_to_fact_sales_order as sotfso
+)
 from utils.dim_location import address_to_dim_location as atdl
 from utils.dim_staff import staff_department_to_dim_staff as sdtds
 
@@ -17,6 +21,7 @@ from utils.dim_staff import staff_department_to_dim_staff as sdtds
 def transformation_lambda_handler(event, context):
     s3 = boto3.client('s3', region_name='eu-west-2')
 
+    # List of all tables names that are needed for transformation
     # will need updating if project is expended to payment and/or
     # transaction schemas
     table_names = [
@@ -28,9 +33,8 @@ def transformation_lambda_handler(event, context):
         'sales_order.csv',
         'staff.csv',
     ]
-    """
-        Ensure that our buckets exists
-    """
+
+    # Ensure that our buckets exists
     try:
         raw_bucket = get_ingestion_bucket_name()
         parquet_bucket = get_parquet_bucket_name()
@@ -38,46 +42,48 @@ def transformation_lambda_handler(event, context):
         logging.critical(f"Missing Bucket Error : {err.message}")
         raise err
 
+    # Create the dim date parquet file if it does not exist,
+    # this happens here as dim date does not need updating
     if not dim_date_exists(s3, parquet_bucket):
         dim_date = gdd()
         parquet_name, parquet_body = process_to_parquet(dim_date)
         s3.put_object(Bucket=parquet_bucket,
                       Key=parquet_name, Body=parquet_body)
 
-    """
-        The buckets exist, so let's
-        grab our processed data:
-    """
-    # grab all timestamps that exist in ingestion bucket but not in parquet
+    # Grab all timestamp prefixes from each bucket
     raw_timestamps = list_timestamps(s3, raw_bucket)
     parquet_timestamps = list_timestamps(s3, parquet_bucket)
 
-    # if these are equal then all raw data has already been processed,
+    # Grab all timestamps that exist in raw but not parquet
+    prefixes_to_process = [
+        item for item in raw_timestamps if item not in parquet_timestamps]
+
+    # If this is zero then all raw data has already been processed,
     # so do nothing, else:
-    if raw_timestamps != parquet_timestamps:
-        # lists are sorted oldest to newest so exclude len(parquet)
-        # num of items from top of raw
-        prefixes_to_process = raw_timestamps[len(parquet_bucket):]
+    if len(prefixes_to_process) > 0:
+        # A list of sublists, one for each timestamp, each containing all the
+        # keys under that timestamp
         keys_to_process = [get_keys_by_prefix(
             s3, raw_bucket, timestamp) for timestamp in prefixes_to_process]
+
         processed_csvs = []
+        # For each timestamp group in keys_to_process:
         for csv_group in keys_to_process:
+            # Apply the relevant transformations to each group based on the
+            # table name contained in the key
             output_block = apply_transformations_to_group(
                 s3, csv_group, table_names)
+
+            # Append all output dicts from output_block to processed_csvs
             processed_csvs.extend([output_block[key]
                                   for key in list(output_block)])
+        # For each csv that has been through the transformation process:
         for csv_dict in processed_csvs:
+            # Convert the body and key to parquet format
             parquet_name, parquet_body = process_to_parquet(csv_dict)
+            # Save the resulting parquet file to the correct s3 bucket
             s3.put_object(Bucket=parquet_bucket,
                           Key=parquet_name, Body=parquet_body)
-
-        # for timestamp in prefixes_to_process:
-        #     keys_to_process.extend(
-        #         get_keys_by_prefix(
-        #             s3, raw_bucket, timestamp
-        #         )
-        #     )
-        # for key in keys_to_process:
 
     #     csv_names = get_csv_names(s3)
     #     max_workers = len(csv_names)
@@ -95,12 +101,15 @@ def transformation_lambda_handler(event, context):
 
 
 class MissingBucketError(Exception):
+    '''An error for when the prerequisite buckets do not exist.'''
+
     def __init__(self, source="", message=""):
         self.source = source
         self.message = message
 
 
 def dim_date_exists(s3, bucket_name):
+    '''Bool for whether dim_date.parquet exists in the passed bucket.'''
     res = s3.list_objects_v2(Bucket=bucket_name).get('Contents')
     if not res:
         return False
@@ -137,6 +146,7 @@ def get_parquet_bucket_name():
 
 
 def list_timestamps(s3, bucket_name):
+    '''Lists out all prefixes that exist in the passed bucket.'''
     timestamps = s3.list_objects_v2(
         Bucket=bucket_name, Prefix="", Delimiter="/"
     ).get('CommonPrefixes', [])
@@ -145,6 +155,7 @@ def list_timestamps(s3, bucket_name):
 
 
 def get_keys_by_prefix(s3, bucket_name, prefix):
+    '''Gets keys from the passed bucket that have the passed prefix.'''
     csvs = s3.list_objects_v2(
         Bucket=bucket_name, Prefix=prefix, Delimiter="/"
     ).get('Contents', [])
@@ -153,6 +164,9 @@ def get_keys_by_prefix(s3, bucket_name, prefix):
 
 
 def s3_obj_to_dict(s3, bucket_name, key):
+    '''Uses the passed key and bucket name to grab an object and convert it to
+       a useable format.
+    '''
     obj = s3.get_object(Bucket=bucket_name, Key=key)
     body = response_to_data_frame(obj)
     timestamp = key.split("/")[0]
@@ -165,9 +179,14 @@ def s3_obj_to_dict(s3, bucket_name, key):
 
 
 def response_to_data_frame(response):
-    """
-        This funtion will convert get_object response for a CSV file
-        into a Pandas DataFrame
+    """This funtion will convert get_object response for a CSV file
+       into a Pandas DataFrame.
+
+        Args:
+            response: The response from a boto3 s3 get_object function
+
+        Returns:
+            dataframe: The body of the response converted to a pandas DataFrame
     """
 
     body_reader = response['Body']
@@ -177,14 +196,33 @@ def response_to_data_frame(response):
 
     for data in csv_reader:
         rows.append(data)
-
-    return pd.DataFrame.from_dict(rows)
+    dataframe = pd.DataFrame.from_dict(rows)
+    return dataframe
 
 
 def apply_transformations_to_group(s3, csv_group, table_names):
+    '''Applies the correct transformation to each csv dict in the passed group
+       and outputs them on a new dict.
+
+        Args:
+            s3: A boto3 s3 client
+
+            csv_group: A list of csv dicts that each share the same timestamp.
+
+            table_names: A list of table names that need transformations
+            applied to them.
+
+        Returns:
+            output_block: A dict of transformed csv_dicts, each on the key of
+            the appropriate transformed table name.
+    '''
     output_block = {}
-    process_block = {key.split("/")[1][:-4]: s3_obj_to_dict(s3, get_ingestion_bucket_name(), key)
-                     for key in csv_group if key.split("/")[1] in table_names}
+    process_block = {key.split("/")[1][:-4]: s3_obj_to_dict(
+        s3,
+        get_ingestion_bucket_name(),
+        key
+    )
+        for key in csv_group if key.split("/")[1] in table_names}
     if process_block.get("address"):
         output_block["dim_location"] = atdl(process_block['address'])
         if process_block.get("counterparty"):
@@ -204,22 +242,11 @@ def apply_transformations_to_group(s3, csv_group, table_names):
 
 
 def process_to_parquet(csv_dict):
-    """
-        This function will process the csv into a parquet format
-        and put the parquet into our processed data bucket.
-
-        This function is asynchronous and so out-of-order results will happen
-    """
-    # for csv_name in names:
-    # if 'currency' in csv_name:
-    # create_currency_parquet(csv_name, ingestion_bucket, parquet_bucket)
-    # elif 'design' in csv_name:
-    # create_design_parquet(csv_name, ingestion_bucket, parquet_bucket)
+    """This function will process a csv dict into a parquet format."""
 
     parquet_name = csv_dict['Key'][:-4] + '.parquet'
     parquet_body = csv_dict['Body'].to_parquet(engine='pyarrow')
     return parquet_name, parquet_body
-    # logging.info(f'CSV to Parquet conversion finished for {csv_name}')
 
 
 # if __name__ == "__main__":
@@ -234,23 +261,31 @@ def process_to_parquet(csv_dict):
 #         'staff.csv',
 #     ]
 #     raw_bucket = get_ingestion_bucket_name()
-    # li = list_timestamps(
-    #     s3, get_ingestion_bucket_name())
-    # # print(li, "\n")
-    # li = get_keys_by_prefix(
-    #     s3, get_ingestion_bucket_name(), '2023-07-31T16:00:44.942687/')
-    # # print(li, "\n")
-    # li = s3_obj_to_dict(s3, get_ingestion_bucket_name(), li[0])
-    # # print(li, "\n")
-    # prefixes_to_process = [
-    #     '2023-07-31T12:24:11.422525/', '2023-07-31T16:00:44.942687/']
-    # keys_to_process = [get_keys_by_prefix(
-    #     s3, get_ingestion_bucket_name(), timestamp) for timestamp in prefixes_to_process]
-    # # pprint(list(keys_to_process))
-    # processed_timestamps = []
-    # for csv_group in keys_to_process:
-    #     timestamp = csv_group[0].split("/")[0]
-    #     output_block = apply_transformations_to_group(s3, csv_group, table_names)
-    #     if output_block != {}:
-    #         processed_timestamps.extend([output_block[key] for key in list(output_block)])
-    # pprint(processed_timestamps)
+#     li = list_timestamps(
+#         s3, get_ingestion_bucket_name())
+#     # print(li, "\n")
+#     li = get_keys_by_prefix(
+#         s3, get_ingestion_bucket_name(), '2023-07-31T16:00:44.942687/')
+#     # print(li, "\n")
+#     li = s3_obj_to_dict(s3, get_ingestion_bucket_name(), li[0])
+#     # print(li, "\n")
+#     prefixes_to_process = [
+#         '2023-07-31T12:24:11.422525/', '2023-07-31T16:00:44.942687/']
+#     keys_to_process = [get_keys_by_prefix(
+#         s3,
+#         get_ingestion_bucket_name(),
+#         timestamp
+#     ) for timestamp in prefixes_to_process]
+#     # pprint(list(keys_to_process))
+#     processed_timestamps = []
+#     for csv_group in keys_to_process:
+#         timestamp = csv_group[0].split("/")[0]
+#         output_block = apply_transformations_to_group(s3,
+#                                                       csv_group,
+#                                                       table_names
+#                                                       )
+#         if output_block != {}:
+#             processed_timestamps.extend(
+#                 [output_block[key] for key in list(output_block)]
+#             )
+#     pprint(processed_timestamps)
