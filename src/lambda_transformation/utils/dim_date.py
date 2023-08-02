@@ -25,10 +25,9 @@ def generate_dim_date():
     dates['month_name'] = dates.date_id.dt.month_name()
     dates['quarter'] = dates.date_id.dt.quarter
 
-    # Add timestamp for consistent naming scheme with other files, but earlier
-    # than all other timesamps so as not to interfere
-    timestamp = dt(2020, 1, 1).isoformat()
-    dim_date_dict = {"Key": f"{timestamp}/dim_date.csv", "Body": dates}
+    # dim_date is unique among utils as does not need updating after creating
+    # so no timestamp on key
+    dim_date_dict = {"Key": "dim_date.csv", "Body": dates}
     return dim_date_dict
 
 

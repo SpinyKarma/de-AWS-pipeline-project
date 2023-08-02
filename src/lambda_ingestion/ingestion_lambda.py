@@ -10,18 +10,16 @@ def ingestion_lambda_handler(event, context):
     '''
     '''
     try:
+        # will need updating if project is expended to payment and/or
+        # transaction schemas
         table_names = [
-            'staff',
-            'counterparty',
-            'sales_order',
             'address',
-            'payment',
-            'purchase_order',
-            'payment_type',
-            'transaction',
+            'counterparty',
             'currency',
             'department',
             'design'
+            'sales_order',
+            'staff',
         ]
         bucket_name = get_ingestion_bucket_name()
         last = get_last_ingestion_timestamp(bucket_name)
