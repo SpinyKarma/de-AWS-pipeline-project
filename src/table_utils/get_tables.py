@@ -132,9 +132,9 @@ def get_table_contents(table_name):
     body = '\n'.join(response['Body'].read().decode('utf-8').splitlines())
 
     return {
-        'name': table_name,
-        'timestamped_name': key,
-        'body': body
+        'Name': table_name,
+        'Key': key,
+        'Body': body
     }
 
 
