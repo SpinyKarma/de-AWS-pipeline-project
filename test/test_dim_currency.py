@@ -24,7 +24,7 @@ def test_output_body_is_pandas_dataframe():
     assert isinstance(output['Body'], pd.DataFrame)
 
 
-def test_output_body_has_expected_transformation_appgitlied():
+def test_output_body_has_expected_transformation_applied():
     output = dcy(test_input_dict)
     test_output = {
         'Key': '2023-07-31T12:24:11.422525/currency.csv',
