@@ -4,8 +4,6 @@ from concurrent.futures import ThreadPoolExecutor
 import pandas as pd
 import csv
 import time
-from src.lambda_transformation.utils.dim_currency import create_currency_dict
-from src.lambda_transformation.utils.dim_design import create_design_dict
 
 
 def get_ingestion_bucket_name():
@@ -81,13 +79,16 @@ def process_to_parquet(csv_name):
     logging.info(f'CSV to Parquet conversion begun for {csv_name}')
     ingestion_bucket = get_ingestion_bucket_name()
     parquet_bucket = get_processed_bucket_name()
+    # this print is just so these variables are used so flake is happy
+    print(ingestion_bucket, parquet_bucket)
+
     names = get_csv_names()
     print(names)
-    #for csv_name in names:
-        #if 'currency' in csv_name:
-            #create_currency_parquet(csv_name, ingestion_bucket, parquet_bucket)
-        #elif 'design' in csv_name:
-           # create_design_parquet(csv_name, ingestion_bucket, parquet_bucket)
+    # for csv_name in names:
+    # if 'currency' in csv_name:
+    # create_currency_parquet(csv_name, ingestion_bucket, parquet_bucket)
+    # elif 'design' in csv_name:
+    # create_design_parquet(csv_name, ingestion_bucket, parquet_bucket)
 
     spreadsheet_name = csv_name[0:-4] + '.parquet'
     s3 = boto3.client('s3')

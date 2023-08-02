@@ -2,7 +2,8 @@ import pandas as pd
 
 
 def counter_party_address_to_dim_counterparty(counterparty_dict, address_dict):
-    '''Takes columns from counterparty and address csv and remaps to dim_counterparty schema.
+    '''Takes columns from counterparty and address csv and remaps to
+       dim_counterparty schema.
 
     Args:
         counterparty_dict: a dict with two key/val pairs:
@@ -22,8 +23,12 @@ def counter_party_address_to_dim_counterparty(counterparty_dict, address_dict):
     address = address_dict['Body']
     counterparty = counterparty_dict['Body']
 # merge the two files above in order to create a dim_counterparty.csv
-    m_data = pd.merge(counterparty, address,
-                      left_on='legal_address_id', right_on='address_id', how='left')
+    m_data = pd.merge(counterparty,
+                      address,
+                      left_on='legal_address_id',
+                      right_on='address_id',
+                      how='left'
+                      )
     dim_counterparty = m_data[[
         'counterparty_id',
         'counterparty_legal_name',
@@ -54,8 +59,8 @@ def counter_party_address_to_dim_counterparty(counterparty_dict, address_dict):
 
     dim_counterparty = dim_counterparty.where(
         pd.notnull(dim_counterparty), None)
-   # concatenate the key with the dim_counterparty
+    # concatenate the key with the dim_counterparty
     new_key = key.split('/')[0]+"/dim_counterparty.csv"
-   # make dict and return it
+    # make dict and return it
     dim_counterparty_dict = {"Key": new_key, "Body": dim_counterparty}
     return dim_counterparty_dict

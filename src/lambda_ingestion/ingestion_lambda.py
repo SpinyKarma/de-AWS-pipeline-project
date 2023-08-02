@@ -4,7 +4,6 @@ import json
 import pg8000.native as pg8000
 import csv
 from datetime import datetime as dt
-import csv
 
 
 def ingestion_lambda_handler(event, context):
@@ -35,8 +34,9 @@ def ingestion_lambda_handler(event, context):
         logging.error(f'Invalid Credentials Error: {error}')
         raise error
     except NonTimestampedCSVError as error:
-        logging.error(
-            f'A CSV is in the bucket without a timestamp, remove all non-timestamped CSVs: {error}')
+        err_str = 'A CSV is in the bucket without a timestamp, '
+        err_str += f'remove all non-timestamped CSVs: {error}'
+        logging.error(err_str)
         raise error
     except Exception as error:
         logging.error(f'An unexpected error occured: {error}')
@@ -180,15 +180,17 @@ def extract_table_to_csv(table_list, last_timestamp):
         key more recent than this will be pulled from the table.
 
     Returns:
-        updated_tables: A dict of each table name that had a return from the 
+        updated_tables: A dict of each table name that had a return from the
         postgres query as keys and the return formatted to a csv as the value.
     '''
     updated_tables = {}
     try:
         for table_name in table_list:
+            f_tablename = pg8000.identifier(table_name)
+            f_timestamp = pg8000.literal(last_timestamp.isoformat())
             with connect() as db:
-                query_str = f'SELECT * FROM {pg8000.identifier(table_name)} WHERE '
-                query_str += f'last_updated > {pg8000.literal(last_timestamp.isoformat())};'
+                query_str = f'SELECT * FROM {f_tablename} WHERE '
+                query_str += f'last_updated > {f_timestamp};'
                 result = db.run(query_str)
                 column_names = [column['name'] for column in db.columns]
                 rows = [dict(zip(column_names, row)) for row in result]
@@ -201,7 +203,7 @@ def extract_table_to_csv(table_list, last_timestamp):
                     csv_text = csv_builder.as_txt()
                     updated_tables[table_name] = csv_text
         return updated_tables
-    except:
+    except Exception:
         raise TableIngestionError
 
 
@@ -215,7 +217,7 @@ def csv_to_s3(Bucket, updated_table_list):
     Args:
         Bucket: Name of the bucket to modify the csvs of.
 
-        updated_table_list: A dict of the table names to perform the function 
+        updated_table_list: A dict of the table names to perform the function
         on, paired with the csv data to write.
 
     Returns:

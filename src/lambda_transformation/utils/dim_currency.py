@@ -1,5 +1,6 @@
 import ccy
 
+
 def currency_to_dim_currency(currency_dict):
     key = currency_dict['Key']
     currency = currency_dict['Body']
@@ -18,6 +19,3 @@ def currency_to_dim_currency(currency_dict):
     new_key = key.split('/')[0]+'/dim_currency.csv'
     dim_currency_dict = {'Key': new_key, 'Body': dim_currency}
     return dim_currency_dict
-
-    
-    
