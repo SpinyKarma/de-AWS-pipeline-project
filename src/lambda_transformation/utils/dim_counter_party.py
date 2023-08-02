@@ -57,10 +57,10 @@ def counter_party_address_to_dim_counterparty(counterparty_dict, address_dict):
         inplace=True
     )
 
-    dim_counterparty = dim_counterparty.where(
-        pd.notnull(dim_counterparty), None)
+    # dim_counterparty = dim_counterparty.where(
+    #     pd.notnull(dim_counterparty), None)
     # concatenate the key with the dim_counterparty
     new_key = key.split('/')[0]+"/dim_counterparty.csv"
     # make dict and return it
-    dim_counterparty_dict = {"Key": new_key, "Body": dim_counterparty,'{timestamp}/dim_staff.csv', 'Body': dim_staff, 'Timestamp': timestamp}}
+    dim_counterparty_dict = {"Key": new_key, "Body": dim_counterparty}
     return dim_counterparty_dict
