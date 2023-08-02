@@ -5,6 +5,6 @@ venv
 .terraform*
 .coverage
 **.zip
-lambda_layer/python/*
-!lambda_layer/python/.test_to_get_folder_recognised_by_git
+lambda_layer*/python/*
+!lambda_layer*/python/.test_to_get_folder_recognised_by_git
 **/sandbox.py
