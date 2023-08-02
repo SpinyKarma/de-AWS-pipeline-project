@@ -14,8 +14,8 @@ resource "aws_s3_object" "lambda_layer_code" {
 
 resource "aws_lambda_layer_version" "lambda_requirements_layer" {
   layer_name          = "lambda_requirements_layer"
-  s3_bucket           = aws_s3_bucket.code_bucket.bucket
-  s3_key              = "lambda_layer.zip"
+  s3_bucket           = aws_s3_object.lambda_layer_code.bucket
+  s3_key              = aws_s3_object.lambda_layer_code.key
   compatible_runtimes = ["python3.10"]
   source_code_hash    = data.archive_file.lambda_layer_zip.output_base64sha256
 }

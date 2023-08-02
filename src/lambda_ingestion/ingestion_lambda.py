@@ -8,7 +8,7 @@ import csv
 
 
 def ingestion_lambda_handler(event, context):
-    '''banana
+    '''
     '''
     try:
         table_names = [
