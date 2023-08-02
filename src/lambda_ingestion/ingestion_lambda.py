@@ -182,27 +182,27 @@ def extract_table_to_csv(table_list, last_timestamp):
         postgres query as keys and the return formatted to a csv as the value.
     '''
     updated_tables = {}
-    try:
-        for table_name in table_list:
-            f_tablename = pg8000.identifier(table_name)
-            f_timestamp = pg8000.literal(last_timestamp.isoformat())
-            with connect() as db:
+    for table_name in table_list:
+        f_tablename = pg8000.identifier(table_name)
+        f_timestamp = pg8000.literal(last_timestamp.isoformat())
+        with connect() as db:
+            try:
                 query_str = f'SELECT * FROM {f_tablename} WHERE '
                 query_str += f'last_updated > {f_timestamp};'
                 result = db.run(query_str)
-                column_names = [column['name'] for column in db.columns]
-                rows = [dict(zip(column_names, row)) for row in result]
-                csv_builder = CsvBuilder()
-                csv_writer = csv.DictWriter(
-                    csv_builder, fieldnames=column_names)
-                if rows != []:
-                    csv_writer.writeheader()
-                    csv_writer.writerows(rows)
-                    csv_text = csv_builder.as_txt()
-                    updated_tables[table_name] = csv_text
-        return updated_tables
-    except Exception:
-        raise TableIngestionError
+            except Exception:
+                raise TableIngestionError
+            column_names = [column['name'] for column in db.columns]
+            rows = [dict(zip(column_names, row)) for row in result]
+            csv_builder = CsvBuilder()
+            csv_writer = csv.DictWriter(
+                csv_builder, fieldnames=column_names)
+            if rows != []:
+                csv_writer.writeheader()
+                csv_writer.writerows(rows)
+                csv_text = csv_builder.as_txt()
+                updated_tables[table_name] = csv_text
+    return updated_tables
 
 
 def csv_to_s3(Bucket, updated_table_list):
