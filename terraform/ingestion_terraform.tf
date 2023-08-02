@@ -98,6 +98,7 @@ resource "aws_lambda_function" "ingestion_lambda" {
 resource "aws_cloudwatch_event_rule" "ingestion_lambda_rule" {
   name                = "ingestion_lambda_rule"
   schedule_expression = "rate(3 minutes)"
+  is_enabled = false
 }
 
 resource "aws_cloudwatch_event_target" "ingestion_lambda_target" {
