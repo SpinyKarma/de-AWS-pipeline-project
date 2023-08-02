@@ -45,7 +45,6 @@ def test_body_is_as_expected():
     '''
         As according to the schema
     '''
-
     expected_columns = [
         'staff_id',
         'first_name',
