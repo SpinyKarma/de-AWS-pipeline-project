@@ -29,7 +29,7 @@ def test_timestamp_is_preserved():
 
 
 def test_body_is_a_pd_dataframe():
-    result: DataFrame = util.create_dim_staff_csv(
+    result: DataFrame = util.staff_department_to_dim_staff(
         tables.read_table('staff.csv'),
         tables.read_table('department.csv')
     )
@@ -39,7 +39,7 @@ def test_body_is_a_pd_dataframe():
 def test_body_is_as_expected():
     staff = tables.read_table('staff.csv')
     depts = tables.read_table('department.csv')
-    result = util.create_dim_staff_csv(staff, depts)
+    result = util.staff_department_to_dim_staff(staff, depts)
     body = result['Body']
 
     '''
