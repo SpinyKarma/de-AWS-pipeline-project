@@ -24,7 +24,7 @@ resource "aws_iam_role" "transformation_lambda_role" {
     EOF
 }
 
-resource "aws_iam_role_policy_attachment" "trans_s3_write_policy_attachment" {
+resource "aws_iam_role_policy_attachment" "transformation_s3_write_policy_attachment" {
   role       = aws_iam_role.transformation_lambda_role.name
   policy_arn = aws_iam_policy.s3_policy.arn
 }
@@ -82,14 +82,14 @@ resource "aws_lambda_function" "transformation_lambda" {
   runtime          = "python3.10"
   timeout          = "60"
   source_code_hash = data.archive_file.transformation_lambda_zip.output_base64sha256
-  layers           = [aws_lambda_layer_version.lambda_requirements_layer.arn, aws_lambda_layer_version.lambda_requirements_layer_2.arn]
+  layers           = [aws_lambda_layer_version.lambda_requirements_layer.arn]
 }
 
 ################################
 ###  TRANSFORMATION TRIGGER  ###
 ################################
 
-resource "aws_lambda_function_event_invoke_config" "transform_trigger" {
+resource "aws_lambda_function_event_invoke_config" "transformation_trigger" {
   function_name = aws_lambda_function.ingestion_lambda.function_name
   destination_config {
     on_success {
