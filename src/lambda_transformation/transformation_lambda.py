@@ -11,7 +11,7 @@ from utils.dim_date import generate_dim_date as gdd
 from utils.dim_design import design_to_dim_design as dtdd
 from utils.dim_fact_sales_order import sales_order_to_fact_sales_order as sotfso
 from utils.dim_location import address_to_dim_location as atdl
-from utils.dim_staff import create_dim_staff_csv as sdtds
+from utils.dim_staff import staff_department_to_dim_staff as sdtds
 
 
 def transformation_lambda_handler(event, context):
@@ -41,7 +41,8 @@ def transformation_lambda_handler(event, context):
     if not dim_date_exists(s3, parquet_bucket):
         dim_date = gdd()
         parquet_name, parquet_body = process_to_parquet(dim_date)
-        s3.put_object(Bucket = parquet_bucket, Key = parquet_name, Body=parquet_body)
+        s3.put_object(Bucket=parquet_bucket,
+                      Key=parquet_name, Body=parquet_body)
 
     """
         The buckets exist, so let's
@@ -61,12 +62,14 @@ def transformation_lambda_handler(event, context):
             s3, raw_bucket, timestamp) for timestamp in prefixes_to_process]
         processed_csvs = []
         for csv_group in keys_to_process:
-            output_block = apply_transformations_to_group(s3, csv_group, table_names)
-            processed_csvs.extend([output_block[key] for key in list(output_block)])
+            output_block = apply_transformations_to_group(
+                s3, csv_group, table_names)
+            processed_csvs.extend([output_block[key]
+                                  for key in list(output_block)])
         for csv_dict in processed_csvs:
             parquet_name, parquet_body = process_to_parquet(csv_dict)
-            s3.put_object(Bucket = parquet_bucket, Key = parquet_name, Body=parquet_body)
-
+            s3.put_object(Bucket=parquet_bucket,
+                          Key=parquet_name, Body=parquet_body)
 
         # for timestamp in prefixes_to_process:
         #     keys_to_process.extend(
@@ -95,6 +98,7 @@ class MissingBucketError(Exception):
     def __init__(self, source="", message=""):
         self.source = source
         self.message = message
+
 
 def dim_date_exists(s3, bucket_name):
     res = s3.list_objects_v2(Bucket=bucket_name).get('Contents')
@@ -176,24 +180,28 @@ def response_to_data_frame(response):
 
     return pd.DataFrame.from_dict(rows)
 
+
 def apply_transformations_to_group(s3, csv_group, table_names):
     output_block = {}
-    process_block = {key.split("/")[1][:-4]: s3_obj_to_dict(s3, raw_bucket, key)
-                    for key in csv_group if key.split("/")[1] in table_names}
+    process_block = {key.split("/")[1][:-4]: s3_obj_to_dict(s3, get_ingestion_bucket_name(), key)
+                     for key in csv_group if key.split("/")[1] in table_names}
     if process_block.get("address"):
         output_block["dim_location"] = atdl(process_block['address'])
         if process_block.get("counterparty"):
-            output_block["dim_counterparty"] = cpatdc(process_block['counterparty'], process_block['address'])
+            output_block["dim_counterparty"] = cpatdc(
+                process_block['counterparty'], process_block['address'])
     if process_block.get('currency'):
         output_block["dim_currency"] = ctdc(process_block['currency'])
     if process_block.get('department') and process_block.get('staff'):
-        output_block["dim_staff"] = sdtds(process_block['staff'], process_block['department'])
+        output_block["dim_staff"] = sdtds(
+            process_block['staff'], process_block['department'])
     if process_block.get('design'):
         output_block["dim_design"] = dtdd(process_block['design'])
     if process_block.get('sales_order'):
         output_block["fact_sales_order"] = sotfso(process_block['sales_order'])
 
     return output_block
+
 
 def process_to_parquet(csv_dict):
     """

@@ -1,6 +1,6 @@
 import boto3
-import datetime as dt
-# from pprint import pprint
+from datetime import datetime as dt
+import pandas as pd
 
 SEPERATOR = '/'
 
@@ -69,7 +69,7 @@ def get_tables():
     def get_key_timestamp(key):
         split = key.split(SEPERATOR)
         timestamp_str = split[0]
-        return dt.datetime.fromisoformat(timestamp_str).timestamp()
+        return dt.fromisoformat(timestamp_str).timestamp()
 
     """
         Note: Reverse ordering is set to true as this puts the
@@ -107,7 +107,7 @@ def get_most_recent_table(table_name):
     raise TableNotFoundError(table_name)
 
 
-def get_table_contents(table_name):
+def read_table(table_name):
     '''
         Will return the contents of the most recent table
         packaged in a dictionary
@@ -129,11 +129,14 @@ def get_table_contents(table_name):
         Key=key
     )
 
-    body = '\n'.join(response['Body'].read().decode('utf-8').splitlines())
+    dataframe = pd.read_csv(response['Body'])
+    timestamp = dt.fromisoformat(key.split(SEPERATOR)[0])
 
     return {
-        'name': table_name,
-        'body': body
+        'Name': table_name,
+        'Timestamp': timestamp,
+        'Key': key,
+        'Body': dataframe
     }
 
 

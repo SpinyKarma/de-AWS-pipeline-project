@@ -5,7 +5,7 @@ import io
 from datetime import datetime as dt
 
 
-def create_dim_staff_csv(staff_dict, department_dict):
+def staff_department_to_dim_staff(staff_dict, department_dict):
     '''
         Will return a KB dictionary in the form:
             'Key' - dim_staff.csv prefixed with a timestamp
@@ -19,17 +19,16 @@ def create_dim_staff_csv(staff_dict, department_dict):
         The timestamp is the most recent timestamp from the two arguments.
     '''
 
-    staff_key, staff_df = staff_dict['Key'], staff_dict['Body']
-    dept_key, dept_df = department_dict['Key'], department_dict['Body']
+    staff_df, dept_df = staff_dict['Body'], department_dict['Body']
 
     '''
         Find the most recent timestamp
     '''
-    staff_timestamp = dt.fromisoformat(staff_key.split('/')[0])
-    dept_timestamp = dt.fromisoformat(dept_key.split('/')[0])
-    timestamps = [staff_timestamp, dept_timestamp]
-    timestamps.sort(reverse=True)
-    timestamp = timestamps[0].isoformat()
+    timestamp = [staff_dict['Timestamp'], department_dict['Timestamp']]
+    timestamp.sort(reverse=True)
+    timestamp = timestamp[0]
+
+    isoformat_timestamp = timestamp.isoformat()
 
     '''
         Create dim_staff by merging the dataframes
@@ -44,27 +43,6 @@ def create_dim_staff_csv(staff_dict, department_dict):
         'location',
     ]]
 
-    return {'Key': f'{timestamp}/dim_staff.csv', 'Body': dim_staff}
-
-
-if __name__ == "__main__":
-    staff = util.get_table_contents('staff.csv')
-    staff_wrapper = io.StringIO(staff['body'])
-    staff_df = pd.read_csv(staff_wrapper)
-
-    dept = util.get_table_contents('department.csv')
-    dept_wrapper = io.StringIO(dept['body'])
-    dept_df = pd.read_csv(dept_wrapper)
-
-    current_timestamp = dt.now().isoformat()
-
-    staff_dict = {'Key': f'{current_timestamp}/staff.csv', 'Body': staff_df}
-    department_dict = {
-        'Key': f'{current_timestamp}/department.csv', 'Body': dept_df}
-
-    result = create_dim_staff_csv(
-        staff_dict=staff_dict,
-        department_dict=department_dict
-    )
-
-    pprint(result)
+    return {'Key': f'{isoformat_timestamp}/dim_staff.csv',
+            'Body': dim_staff,
+            'Timestamp': timestamp}
