@@ -23,7 +23,7 @@ def address_to_dim_location(address_dict):
                             'city',
                             'postal_code',
                             'country',
-                            'phone']]
+                            'phone']].copy()
 
     # pandas rename not working for whatever reason, so just assigned all
     dim_location.rename(

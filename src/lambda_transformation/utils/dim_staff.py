@@ -1,11 +1,5 @@
-import src.table_utils.get_tables as util
-from pprint import pprint
-import pandas as pd
-import io
-from datetime import datetime as dt
 
-
-def create_dim_staff_csv(staff_dict, department_dict):
+def staff_department_to_dim_staff(staff_dict, department_dict):
     '''
         Will return a KB dictionary in the form:
             'Key' - dim_staff.csv prefixed with a timestamp

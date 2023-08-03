@@ -1,9 +1,8 @@
 import pandas as pd
 
-
 def sales_order_to_fact_sales_order(sales_order_dict):
     '''Takes all sales orders from sales_order csv and remaps to
-       dim_sales_order schema.
+       fact_sales_order schema.
 
     Args:
         sales_order_dict: a dict with two key/val pairs:
@@ -11,9 +10,9 @@ def sales_order_to_fact_sales_order(sales_order_dict):
             "Body": a panda dataframe of the csv contents.
 
     Returns:
-        dim_sales_order_dict: a dict with two key/val pairs:
-            "Key": the key of the dim_sales_order file
-            "Body": a pandas dataframe of the dim_sales_order contents.
+        fact_sales_order_dict: a dict with two key/val pairs:
+            "Key": the key of the fact_sales_order file
+            "Body": a pandas dataframe of the fact_sales_order contents.
     '''
 
     key = sales_order_dict['Key']
