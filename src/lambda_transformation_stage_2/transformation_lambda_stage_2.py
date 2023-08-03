@@ -4,7 +4,7 @@ import logging
 import pyarrow.csv as pv
 import pyarrow.parquet as pq
 from pyarrow import fs
-from pprint import pprint
+# from pprint import pprint
 
 
 def transformation_lambda_handler_stage_2(event, context):
@@ -62,7 +62,9 @@ def process_file_to_parquet(s3, file):
     # Convert to parquet and write to the same bucket and folder,
     # changing .csv to .parquet
     writer = pq.ParquetWriter(
-        f"s3://{file.path[:-4]}.parquet", schema=reader.schema, use_dictionary=False
+        f"s3://{file.path[:-4]}.parquet",
+        schema=reader.schema,
+        use_dictionary=False
     )
     writer.write_table(reader.read_all())
 
