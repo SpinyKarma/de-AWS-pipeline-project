@@ -23,31 +23,28 @@ def transformation_lambda_handler_stage_2(event, context):
         logging.critical(f"Missing Bucket Error : {err.message}")
         raise err
 
-    # List all contents in a bucket, recursively
-
     bucket_contents = s3.get_file_info(fs.FileSelector(
-        parquet_bucket, recursive=True))
+        parquet_bucket, recursive=False))
 
-    # Filter out all entries that are not files and do not end with .csv
+    folder_names = [file.base_name for file in bucket_contents]
 
-    bucket_csvs = [
-        file for file in bucket_contents
-        if file.is_file and file.extension == "csv"]
+    # ignore dim date parquet
+    if folder_names[-1] == "dim_date.parquet":
+        folder_names = folder_names[:-1]
+    # process dim date csv
+    elif folder_names[-1] == "dim_date.csv":
+        file = bucket_contents[-1]
+        process_csv_to_parquet(file)
+        folder_names = folder_names[:-1]
 
-    # For each csv file:
-    for file in bucket_csvs:
-        # Open a path to s3 to read the file
-        fh = s3.open_input_stream(file.path)
-        # Read the csv contents
-        reader = pv.open_csv(fh)
-        # Convert to parquet and write to the same bucket and folder,
-        # changing .csv to .parquet
-        pq.ParquetWriter(
-            f"s3://{file.path[:-4]}.parquet",
-            schema=reader.schema
-        )
-        # Delete the interim csv now that it has been fully processed
-        s3.delete_file(file.path)
+    for folder in folder_names:
+        folder_contents = s3.get_file_info(fs.FileSelector(
+            parquet_bucket+"/"+folder, recursive=False))
+        bucket_csvs = [
+            file for file in folder_contents
+            if file.is_file and file.extension == "csv"]
+        for file in bucket_csvs:
+            process_csv_to_parquet(file)
 
 
 class MissingBucketError(Exception):
@@ -56,6 +53,20 @@ class MissingBucketError(Exception):
     def __init__(self, source="", message=""):
         self.source = source
         self.message = message
+
+
+def process_csv_to_parquet(file):
+    fh = s3.open_input_stream(file.path)
+    # Read the csv contents
+    reader = pv.open_csv(fh)
+    # Convert to parquet and write to the same bucket and folder,
+    # changing .csv to .parquet
+    pq.ParquetWriter(
+        f"s3://{file.path[:-4]}.parquet",
+        schema=reader.schema
+    )
+    # Delete the interim csv now that it has been fully processed
+    s3.delete_file(file.path)
 
 
 def get_parquet_bucket_name():
@@ -72,9 +83,9 @@ def get_parquet_bucket_name():
     )
 
 
-# if __name__ == "__main__":
-#     s3 = fs.S3FileSystem(region='eu-west-2')
-
+if __name__ == "__main__":
+    s3 = fs.S3FileSystem(region='eu-west-2')
+    parquet_bucket = get_parquet_bucket_name()
 #     bucket_contents = s3.get_file_info(fs.FileSelector(
 #         get_parquet_bucket_name(), recursive=True))
 
