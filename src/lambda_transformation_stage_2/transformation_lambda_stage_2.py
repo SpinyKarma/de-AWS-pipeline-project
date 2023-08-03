@@ -34,7 +34,7 @@ def transformation_lambda_handler_stage_2(event, context):
     # process dim date csv
     elif folder_names[-1] == "dim_date.csv":
         file = bucket_contents[-1]
-        process_csv_to_parquet(file)
+        process_file_to_parquet(s3, file)
         folder_names = folder_names[:-1]
 
     for folder in folder_names:
@@ -44,7 +44,7 @@ def transformation_lambda_handler_stage_2(event, context):
             file for file in folder_contents
             if file.is_file and file.extension == "csv"]
         for file in bucket_csvs:
-            process_csv_to_parquet(file)
+            process_file_to_parquet(s3, file)
 
 
 class MissingBucketError(Exception):
@@ -55,18 +55,35 @@ class MissingBucketError(Exception):
         self.message = message
 
 
-def process_csv_to_parquet(file):
+def process_file_to_parquet(s3, file):
     fh = s3.open_input_stream(file.path)
     # Read the csv contents
     reader = pv.open_csv(fh)
     # Convert to parquet and write to the same bucket and folder,
     # changing .csv to .parquet
-    pq.ParquetWriter(
+    writer = pq.ParquetWriter(
         f"s3://{file.path[:-4]}.parquet",
-        schema=reader.schema
+        schema=reader.schema,
+        use_dictionary=False
     )
-    # Delete the interim csv now that it has been fully processed
+    writer.write_table(reader.read_all())
+
+    writer.close()
+    reader.close()
+    # # Delete the interim csv now that it has been fully processed
     s3.delete_file(file.path)
+
+
+def read_parquet(s3, file):
+    '''Takes a pyarrow FileInfo object that points to a parquet file on s3 and
+       returns the parquet file contents as a list of lists, one for each row
+       including column names.
+       '''
+    fh = s3.open_input_file(file.path)
+    dataframe = pq.read_table(fh).to_pandas()
+    str_table = dataframe.iloc[:, 1:].to_string(index=False)
+    list_table = [row.split() for row in str_table.split("\n")]
+    return list_table
 
 
 def get_parquet_bucket_name():
@@ -83,12 +100,15 @@ def get_parquet_bucket_name():
     )
 
 
-if __name__ == "__main__":
-    s3 = fs.S3FileSystem(region='eu-west-2')
-    parquet_bucket = get_parquet_bucket_name()
+# if __name__ == "__main__":
+#     # transformation_lambda_handler_stage_2("banana", "apple")
+#     s3 = fs.S3FileSystem(region='eu-west-2')
+#     parquet_bucket = get_parquet_bucket_name()
 #     bucket_contents = s3.get_file_info(fs.FileSelector(
-#         get_parquet_bucket_name(), recursive=True))
-
+#         parquet_bucket, recursive=False))
+#     date_csv_file = [
+#         file for file in bucket_contents if file.extension == "parquet"][0]
+#     read_parquet(s3, date_csv_file)
 #     bucket_csvs = [
 #         file for file in bucket_contents if
 #         file.is_file and file.extension == "csv"]
