@@ -19,3 +19,25 @@ resource "aws_lambda_layer_version" "lambda_requirements_layer" {
   compatible_runtimes = ["python3.10"]
   source_code_hash    = data.archive_file.lambda_layer_zip.output_base64sha256
 }
+
+data "archive_file" "lambda_layer_zip_2" {
+  type        = "zip"
+  source_dir  = "${path.module}/../lambda_layer_2"
+  output_path = "${path.module}/../lambda_layer_2.zip"
+}
+
+resource "aws_s3_object" "lambda_layer_code_2" {
+  bucket      = aws_s3_bucket.code_bucket.bucket
+  key         = "lambda_layer_2.zip"
+  acl         = "private"
+  source      = data.archive_file.lambda_layer_zip_2.output_path
+  source_hash = data.archive_file.lambda_layer_zip_2.output_base64sha256
+}
+
+resource "aws_lambda_layer_version" "lambda_requirements_layer_2" {
+  layer_name          = "lambda_requirements_layer_2"
+  s3_bucket           = aws_s3_object.lambda_layer_code_2.bucket
+  s3_key              = aws_s3_object.lambda_layer_code_2.key
+  compatible_runtimes = ["python3.10"]
+  source_code_hash    = data.archive_file.lambda_layer_zip_2.output_base64sha256
+}

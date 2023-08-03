@@ -55,6 +55,9 @@ jobs:
       - name: lambda layer requirements
         run: pip install --target lambda_layer/python -r lambda_layer_requirements.txt
 
+      - name: lambda layer 2 requirements
+        run: pip install --target lambda_layer_2/python -r lambda_layer_requirements_2.txt
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:

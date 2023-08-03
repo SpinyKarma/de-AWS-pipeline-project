@@ -46,9 +46,9 @@ def transformation_lambda_handler(event, context):
     # this happens here as dim date does not need updating
     if not dim_date_exists(s3, parquet_bucket):
         dim_date = gdd()
-        parquet_name, parquet_body = process_to_parquet(dim_date)
+        csv_name, csv_body = back_to_csv(dim_date)
         s3.put_object(Bucket=parquet_bucket,
-                      Key=parquet_name, Body=parquet_body)
+                      Key=csv_name, Body=csv_body)
 
     # Grab all timestamp prefixes from each bucket
     raw_timestamps = list_timestamps(s3, raw_bucket)
@@ -80,10 +80,10 @@ def transformation_lambda_handler(event, context):
         # For each csv that has been through the transformation process:
         for csv_dict in processed_csvs:
             # Convert the body and key to parquet format
-            parquet_name, parquet_body = process_to_parquet(csv_dict)
+            csv_name, csv_body = back_to_csv(csv_dict)
             # Save the resulting parquet file to the correct s3 bucket
             s3.put_object(Bucket=parquet_bucket,
-                          Key=parquet_name, Body=parquet_body)
+                          Key=csv_name, Body=csv_body)
 
     #     csv_names = get_csv_names(s3)
     #     max_workers = len(csv_names)
@@ -241,16 +241,19 @@ def apply_transformations_to_group(s3, csv_group, table_names):
     return output_block
 
 
-def process_to_parquet(csv_dict):
-    """This function will process a csv dict into a parquet format."""
+def back_to_csv(csv_dict):
+    """This function will process a csv dict into csv string body."""
 
-    parquet_name = csv_dict['Key'][:-4] + '.parquet'
-    parquet_body = csv_dict['Body'].to_parquet(engine='pyarrow')
-    return parquet_name, parquet_body
+    csv_body = csv_dict['Body'].to_csv()
+    return csv_dict['Key'], csv_body
 
 
 # if __name__ == "__main__":
 #     s3 = boto3.client('s3', region_name='eu-west-2')
+#     dim_date = gdd()
+#     csv_name, csv_body = back_to_csv(dim_date)
+#     s3.put_object(Bucket=get_parquet_bucket_name(),
+#                   Key=csv_name, Body=csv_body)
 #     table_names = [
 #         'address.csv',
 #         'counterparty.csv',

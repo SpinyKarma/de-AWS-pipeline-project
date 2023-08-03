@@ -17,7 +17,7 @@ def ingestion_lambda_handler(event, context):
             'counterparty',
             'currency',
             'department',
-            'design'
+            'design',
             'sales_order',
             'staff',
         ]
@@ -26,7 +26,7 @@ def ingestion_lambda_handler(event, context):
         csvs_to_update = extract_table_to_csv(table_names, last)
         csv_to_s3(bucket_name, csvs_to_update)
     except TableIngestionError as error:
-        logging.error(f'Table Ingestion Error: {error}')
+        logging.error(f'Table Ingestion Error: {error.message}')
         raise error
     except InvalidCredentialsError as error:
         logging.error(f'Invalid Credentials Error: {error}')
@@ -53,7 +53,8 @@ def get_ingestion_bucket_name():
 
 
 class TableIngestionError(Exception):
-    pass
+    def __init__(self, message=""):
+        self.message = message
 
 
 class NonTimestampedCSVError(Exception):
@@ -182,27 +183,27 @@ def extract_table_to_csv(table_list, last_timestamp):
         postgres query as keys and the return formatted to a csv as the value.
     '''
     updated_tables = {}
-    try:
-        for table_name in table_list:
-            f_tablename = pg8000.identifier(table_name)
-            f_timestamp = pg8000.literal(last_timestamp.isoformat())
-            with connect() as db:
+    for table_name in table_list:
+        f_tablename = pg8000.identifier(table_name)
+        f_timestamp = pg8000.literal(last_timestamp.isoformat())
+        with connect() as db:
+            try:
                 query_str = f'SELECT * FROM {f_tablename} WHERE '
                 query_str += f'last_updated > {f_timestamp};'
                 result = db.run(query_str)
-                column_names = [column['name'] for column in db.columns]
-                rows = [dict(zip(column_names, row)) for row in result]
-                csv_builder = CsvBuilder()
-                csv_writer = csv.DictWriter(
-                    csv_builder, fieldnames=column_names)
-                if rows != []:
-                    csv_writer.writeheader()
-                    csv_writer.writerows(rows)
-                    csv_text = csv_builder.as_txt()
-                    updated_tables[table_name] = csv_text
-        return updated_tables
-    except Exception:
-        raise TableIngestionError
+            except Exception:
+                raise TableIngestionError(f"Error querying {table_name} table")
+            column_names = [column['name'] for column in db.columns]
+            rows = [dict(zip(column_names, row)) for row in result]
+            csv_builder = CsvBuilder()
+            csv_writer = csv.DictWriter(
+                csv_builder, fieldnames=column_names)
+            if rows != []:
+                csv_writer.writeheader()
+                csv_writer.writerows(rows)
+                csv_text = csv_builder.as_txt()
+                updated_tables[table_name] = csv_text
+    return updated_tables
 
 
 def csv_to_s3(Bucket, updated_table_list):
