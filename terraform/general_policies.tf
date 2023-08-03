@@ -48,6 +48,17 @@ data "aws_iam_policy_document" "cw_transformation_write_policy_document" {
   }
 }
 
+data "aws_iam_policy_document" "cw_load_write_policy_document" {
+  statement {
+
+    actions = ["logs:CreateLogStream", "logs:PutLogEvents"]
+
+    resources = [
+      "${aws_cloudwatch_log_group.load_log_group.arn}:*"
+    ]
+  }
+}
+
 data "aws_iam_policy_document" "cw_transformation_stage_2_write_policy_document" {
   statement {
 
@@ -114,4 +125,9 @@ resource "aws_iam_policy" "lambda_execute_policy" {
 resource "aws_iam_policy" "sns_publish_policy" {
   name_prefix = "sns-publish-policy-"
   policy      = data.aws_iam_policy_document.sns_publish_policy_document.json
+}
+
+resource "aws_iam_policy" "cw_load_write_policy" {
+  name_prefix = "cw-write-policy-load"
+  policy = data.aws_iam_policy_document.cw_load_write_policy_document.json
 }
