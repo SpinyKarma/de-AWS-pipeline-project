@@ -86,15 +86,15 @@ def get_parquet_bucket_name():
 if __name__ == "__main__":
     s3 = fs.S3FileSystem(region='eu-west-2')
     parquet_bucket = get_parquet_bucket_name()
-#     bucket_contents = s3.get_file_info(fs.FileSelector(
-#         get_parquet_bucket_name(), recursive=True))
+    bucket_contents = s3.get_file_info(fs.FileSelector(
+        get_parquet_bucket_name(), recursive=True))
 
-#     bucket_csvs = [
-#         file for file in bucket_contents if
-#         file.is_file and file.extension == "csv"]
-#     for file in bucket_csvs:
-#         fh = s3.open_input_stream(file.path)
-#         reader = pv.open_csv(fh)
-#         pq.ParquetWriter(
-#             f"s3://{file.path[:-4]}.parquet", schema=reader.schema)
-#         s3.delete_file(file.path)
+    bucket_csvs = [
+        file for file in bucket_contents if
+        file.is_file and file.extension == "csv"]
+    for file in bucket_csvs:
+        fh = s3.open_input_stream(file.path)
+        reader = pv.open_csv(fh)
+        pq.ParquetWriter(
+            f"s3://{file.path[:-4]}.parquet", schema=reader.schema)
+        s3.delete_file(file.path)
