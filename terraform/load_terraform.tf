@@ -78,7 +78,7 @@ resource "aws_lambda_function" "load_lambda" {
   s3_key           = aws_s3_object.load_lambda_code.key
   function_name    = "load_lambda_handler"
   role             = aws_iam_role.load_lambda_role.arn
-  handler          = "load_lambda.load_lambda_handler"
+  handler          = "loading_lambda.loading_lambda_handler"
   runtime          = "python3.10"
   timeout          = "60"
   source_code_hash = data.archive_file.load_lambda_zip.output_base64sha256
