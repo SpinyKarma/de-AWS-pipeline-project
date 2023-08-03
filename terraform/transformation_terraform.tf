@@ -125,7 +125,7 @@ resource "aws_cloudwatch_log_metric_filter" "transformation_missing_bucket_error
   }
 }
 
-resource "aws_cloudwatch_metric_alarm" "missing_bucket_error_alarm" {
+resource "aws_cloudwatch_metric_alarm" "transformation_missing_bucket_error_alarm" {
   alarm_name          = "missing_bucket_error_alarm"
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = 1
