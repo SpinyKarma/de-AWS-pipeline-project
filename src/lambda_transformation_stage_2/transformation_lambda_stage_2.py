@@ -50,18 +50,18 @@ def transformation_lambda_handler_stage_2(event, context):
         # Get a FileInfo object for each itme in the folder
         folder_contents = s3.get_file_info(fs.FileSelector(
             parquet_bucket+"/"+folder, recursive=False))
-        
+
         # Filter out any files that are not csvs
         folder_csvs = [
             file for file in folder_contents
             if file.is_file and file.extension == "csv"]
-        
+
         if folder_csvs != []:
             files_to_convert = True
         for file in folder_csvs:
             process_file_to_parquet(s3, file)
     if not files_to_convert:
-        logging.info(f"No csvs to convert to to parquet.")
+        logging.info("No csvs to convert to to parquet.")
 
 
 class MissingBucketError(Exception):
