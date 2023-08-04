@@ -1,8 +1,8 @@
 name: "check-branches"
 on:
   push:
-    branches:
-      - "!main"
+    branches-ignore:
+      - main
 jobs:
   branch-code-checks:
     runs-on: ubuntu-latest
