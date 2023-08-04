@@ -1,10 +1,10 @@
-name: "ingestion"
+name: "check-and-deploy-main"
 on:
   push:
     branches:
       - main
 jobs:
-  code-checks:
+  main-code-checks:
     runs-on: ubuntu-latest
     steps:
       - name: checkout repo
@@ -41,7 +41,7 @@ jobs:
         run: make unit-test
 
   terraform:
-    needs: code-checks
+    needs: main-code-checks
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
@@ -79,8 +79,3 @@ jobs:
       - name: Terraform apply
         working-directory: terraform
         run: terraform apply -auto-approve
-
-      # second apply because of weird terraform staging interaction with deployment of lambdas
-      # - name: Second terraform apply to ensure deployment
-      #   working-directory: terraform
-      #   run: terraform apply -auto-approve
