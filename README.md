@@ -1,7 +1,7 @@
 ## Data-Dynamics ETL Platform
 
 
-An ETL application built in python that pipes structured data from a database into a data warehouse. The primary data source for the project is a moderately complex (but not very large) database called totesys which is meant to simulate the back end data of a commercial application. Data is inserted and updated into this database several times a day.transforms the data to parquet files formatted for easy insertion to a data warehouse, using a second S3 bucket and finally uses the data to populate a star-schema data warehouse.
+A data engineering application built in python that pipes structured data from a database into a data warehouse. The primary data source for the project is a moderately complex (but not very large) database called totesys which is meant to simulate the back end data of a commercial application. Data is inserted and updated into this database several times a day.transforms the data to parquet files formatted for easy insertion to a data warehouse, using a second S3 bucket and finally uses the data to populate a star-schema data warehouse.
 
 Authors:
 
