@@ -29,6 +29,11 @@ resource "aws_iam_role_policy_attachment" "loading_s3_write_policy_attachment" {
   policy_arn = aws_iam_policy.s3_policy.arn
 }
 
+resource "aws_iam_role_policy_attachment" "loading_secret_read_policy_attachment" {
+  role       = aws_iam_role.loading_lambda_role.name
+  policy_arn = aws_iam_policy.secret_read_policy.arn
+}
+
 resource "aws_iam_role_policy_attachment" "loading_cw_write_policy_attachment" {
   role       = aws_iam_role.loading_lambda_role.name
   policy_arn = aws_iam_policy.cw_loading_write_policy.arn
