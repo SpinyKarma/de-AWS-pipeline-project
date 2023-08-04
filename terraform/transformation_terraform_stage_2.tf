@@ -108,7 +108,7 @@ resource "aws_lambda_permission" "transformation_stage_2_lambda_event" {
   source_arn    = aws_lambda_function.ingestion_lambda.arn
 }
 
-#############################
+############################
 ####  ALARM AND METRICS  ####
 #############################
 
