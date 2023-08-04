@@ -50,7 +50,7 @@ def transformation_lambda_handler(event, context):
     # Create the dim date parquet file if it does not exist,
     # this happens here as dim date does not need updating once created
     if not dim_date_exists(s3, parquet_bucket):
-        logging.info(f"dim_date file does not exist, generating it")
+        logging.info("dim_date file does not exist, generating it.")
         dim_date = gdd()
         csv_name, csv_body = back_to_csv(dim_date)
         s3.put_object(Bucket=parquet_bucket,
@@ -86,7 +86,7 @@ def transformation_lambda_handler(event, context):
             # Append all output dicts from output_block to processed_csvs
             processed_csvs.extend([output_block[key]
                                   for key in list(output_block)])
-            
+
         # For each csv that has been through the transformation process:
         if processed_csvs != []:
             logging.info("Writing processed csvs to processed bucket.")
@@ -97,7 +97,7 @@ def transformation_lambda_handler(event, context):
             s3.put_object(Bucket=parquet_bucket,
                           Key=csv_name, Body=csv_body)
     else:
-        logging.info(f"No new data to process.")
+        logging.info("No new data to process.")
     #     csv_names = get_csv_names(s3)
     #     max_workers = len(csv_names)
 
