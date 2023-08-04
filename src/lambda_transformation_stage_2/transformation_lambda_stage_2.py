@@ -13,12 +13,13 @@ def transformation_lambda_handler_stage_2(event, context):
     Takes the warehouse schema csvs that have temporarily been saved to the
     processed bucket, finishes the transform stage by converting them to
     parquets, writing them to the same prefix in the same bucket and then
-    deleting the csv.
+    deleting the csvs.
     '''
     s3 = fs.S3FileSystem(region='eu-west-2')
 
     try:
         parquet_bucket = get_parquet_bucket_name()
+        logging.info(f"Processed bucket established as {parquet_bucket}.")
     except MissingBucketError as err:
         logging.critical(f"Missing Bucket Error : {err.message}")
         raise err
@@ -28,23 +29,39 @@ def transformation_lambda_handler_stage_2(event, context):
 
     folder_names = [file.base_name for file in bucket_contents]
 
-    # ignore dim date parquet
+    # Ignore dim_date.parquet
     if folder_names[-1] == "dim_date.parquet":
         folder_names = folder_names[:-1]
-    # process dim date csv
+
+    # Process dim_date.csv to dim_date.parquet, then ignore
     elif folder_names[-1] == "dim_date.csv":
         file = bucket_contents[-1]
         process_file_to_parquet(s3, file)
         folder_names = folder_names[:-1]
 
+    # Ignore cache.txt
+    if folder_names[-1] == "cache.txt":
+        folder_names = folder_names[:-1]
+
+    files_to_convert = False
+    # For each folder in the processed bucket:
     for folder in folder_names:
+
+        # Get a FileInfo object for each itme in the folder
         folder_contents = s3.get_file_info(fs.FileSelector(
             parquet_bucket+"/"+folder, recursive=False))
-        bucket_csvs = [
+
+        # Filter out any files that are not csvs
+        folder_csvs = [
             file for file in folder_contents
             if file.is_file and file.extension == "csv"]
-        for file in bucket_csvs:
+
+        if folder_csvs != []:
+            files_to_convert = True
+        for file in folder_csvs:
             process_file_to_parquet(s3, file)
+    if not files_to_convert:
+        logging.info("No csvs to convert to to parquet.")
 
 
 class MissingBucketError(Exception):
@@ -61,6 +78,7 @@ def process_file_to_parquet(s3, file):
     reader = pv.open_csv(fh)
     # Convert to parquet and write to the same bucket and folder,
     # changing .csv to .parquet
+    logging.info(f"Writing to {file.base_name[:-4]}.parquet.")
     writer = pq.ParquetWriter(
         f"s3://{file.path[:-4]}.parquet",
         schema=reader.schema,
@@ -71,6 +89,7 @@ def process_file_to_parquet(s3, file):
     writer.close()
     reader.close()
     # # Delete the interim csv now that it has been fully processed
+    logging.info(f"Deleting {file.base_name}.")
     s3.delete_file(file.path)
 
 

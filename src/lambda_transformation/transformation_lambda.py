@@ -19,6 +19,9 @@ from utils.dim_staff import staff_department_to_dim_staff as sdtds
 
 
 def transformation_lambda_handler(event, context):
+    ''' Reads csv files from an s3 bucket, transforms them into the schema of
+        the data warehouse and saves them as csvs in another s3 bucket.
+    '''
     s3 = boto3.client('s3', region_name='eu-west-2')
 
     # List of all tables names that are needed for transformation
@@ -37,7 +40,9 @@ def transformation_lambda_handler(event, context):
     # Ensure that our buckets exists
     try:
         raw_bucket = get_ingestion_bucket_name()
+        logging.info(f"Ingestion bucket established as {raw_bucket}.")
         parquet_bucket = get_parquet_bucket_name()
+        logging.info(f"Processed bucket established as {parquet_bucket}.")
     except MissingBucketError as err:
         logging.critical(f"Missing Bucket Error : {err.message}")
         raise err
@@ -45,6 +50,7 @@ def transformation_lambda_handler(event, context):
     # Create the dim date parquet file if it does not exist,
     # this happens here as dim date does not need updating once created
     if not dim_date_exists(s3, parquet_bucket):
+        logging.info("dim_date file does not exist, generating it.")
         dim_date = gdd()
         csv_name, csv_body = back_to_csv(dim_date)
         s3.put_object(Bucket=parquet_bucket,
@@ -61,14 +67,17 @@ def transformation_lambda_handler(event, context):
     # If this is zero then all raw data has already been processed,
     # so do nothing, else:
     if len(prefixes_to_process) > 0:
+
         # A list of sublists, one for each timestamp, each containing all the
         # keys under that timestamp
         keys_to_process = [get_keys_by_prefix(
             s3, raw_bucket, timestamp) for timestamp in prefixes_to_process]
 
         processed_csvs = []
+
         # For each timestamp group in keys_to_process:
         for csv_group in keys_to_process:
+
             # Apply the relevant transformations to each group based on the
             # table name contained in the key
             output_block = apply_transformations_to_group(
@@ -77,14 +86,18 @@ def transformation_lambda_handler(event, context):
             # Append all output dicts from output_block to processed_csvs
             processed_csvs.extend([output_block[key]
                                   for key in list(output_block)])
+
         # For each csv that has been through the transformation process:
+        if processed_csvs != []:
+            logging.info("Writing processed csvs to processed bucket.")
         for csv_dict in processed_csvs:
             # Convert the body and key to parquet format
             csv_name, csv_body = back_to_csv(csv_dict)
             # Save the resulting parquet file to the correct s3 bucket
             s3.put_object(Bucket=parquet_bucket,
                           Key=csv_name, Body=csv_body)
-
+    else:
+        logging.info("No new data to process.")
     #     csv_names = get_csv_names(s3)
     #     max_workers = len(csv_names)
 
@@ -109,7 +122,7 @@ class MissingBucketError(Exception):
 
 
 def dim_date_exists(s3, bucket_name):
-    '''Bool for whether dim_date exists in the passed bucket.'''
+    '''Bool for whether a dim_date file exists in the passed bucket.'''
     res = s3.list_objects_v2(Bucket=bucket_name).get('Contents')
     if not res:
         return False
@@ -179,8 +192,8 @@ def s3_obj_to_dict(s3, bucket_name, key):
 
 
 def response_to_data_frame(response):
-    """This funtion will convert get_object response for a CSV file
-       into a Pandas DataFrame.
+    """ This funtion will convert a get_object response for a CSV file into a
+        Pandas DataFrame.
 
         Args:
             response: The response from a boto3 s3 get_object function
@@ -216,6 +229,7 @@ def apply_transformations_to_group(s3, csv_group, table_names):
             output_block: A dict of transformed csv_dicts, each on the key of
             the appropriate transformed table name.
     '''
+
     output_block = {}
     process_block = {key.split("/")[1][:-4]: s3_obj_to_dict(
         s3,
@@ -224,25 +238,32 @@ def apply_transformations_to_group(s3, csv_group, table_names):
     )
         for key in csv_group if key.split("/")[1] in table_names}
     if process_block.get("address"):
+        logging.info("Creating dim_location.csv.")
         output_block["dim_location"] = atdl(process_block['address'])
         if process_block.get("counterparty"):
+            logging.info("Creating dim_location.csv.")
             output_block["dim_counterparty"] = cpatdc(
                 process_block['counterparty'], process_block['address'])
     if process_block.get('currency'):
+        logging.info("Creating dim_currency.csv.")
         output_block["dim_currency"] = ctdc(process_block['currency'])
     if process_block.get('department') and process_block.get('staff'):
+        logging.info("Creating dim_staff.csv.")
         output_block["dim_staff"] = sdtds(
             process_block['staff'], process_block['department'])
     if process_block.get('design'):
+        logging.info("Creating dim_design.csv.")
         output_block["dim_design"] = dtdd(process_block['design'])
     if process_block.get('sales_order'):
+        logging.info("Creating fact_sales_order.csv.")
         output_block["fact_sales_order"] = sotfso(process_block['sales_order'])
 
     return output_block
 
 
 def back_to_csv(csv_dict):
-    """This function will process a csv dict into csv string body."""
+    """ Processes the Pandas DataFrame on a csv dict's Body key into csv
+        string body, returning the original Key and the new Body."""
 
     csv_body = csv_dict['Body'].to_csv()
     return csv_dict['Key'], csv_body
