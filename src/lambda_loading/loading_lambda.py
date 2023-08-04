@@ -8,7 +8,7 @@ import json
 
 
 def loading_lambda_handler(event, context):
-    ''' Reads parquet files from an s3 bucket and inserts the data contined 
+    ''' Reads parquet files from an s3 bucket and inserts the data contined
     within them into the data warehouse, using a cache file to ensure the same
     entry is not inserted more than once.
     '''
@@ -57,7 +57,7 @@ def loading_lambda_handler(event, context):
     with connect() as db:
         res = db.run("SELECT * FROM dim_date LIMIT 1;")
         if res == []:
-            logging.info(f"dim_date not populated in waregouse, populating.")
+            logging.info("dim_date not populated in waregouse, populating.")
             file = s3_py.get_file_info(parquet_bucket+"/dim_date.parquet")
             insert_data(s3_py, file)
 
@@ -84,7 +84,7 @@ def loading_lambda_handler(event, context):
     # Write cache to bucket so future calls to lambda don't insert old data
     # over new data
     if diff_list != []:
-        logging.info(f"Writing out updated cache file.")
+        logging.info("Writing out updated cache file.")
         s3_boto.put_object(
             Bucket=parquet_bucket, Key='cache.txt', Body='\n'.join(cache_txt)
         )
