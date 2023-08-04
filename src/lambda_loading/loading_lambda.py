@@ -4,7 +4,7 @@ import pyarrow.parquet as pq
 from pyarrow import fs
 import pg8000.native as pg
 import json
-# from pprint import pprint
+from pprint import pprint
 
 
 def loading_lambda_handler(event, context):
@@ -45,7 +45,7 @@ def loading_lambda_handler(event, context):
     # check if dim date is populated, if not then populate
     with connect() as db:
         res = db.run("SELECT * FROM dim_date LIMIT 1;")
-        if res != []:
+        if res == []:
             file = s3_py.get_file_info(parquet_bucket+"/dim_date.parquet")
             insert_data(s3_py, file)
 
@@ -188,7 +188,9 @@ class MissingBucketError(Exception):
         self.message = message
 
 
-# if __name__ == "__main__":
-#     s3_boto = boto3.client('s3', region_name='eu-west-2')
-#     parquet_bucket = get_parquet_bucket_name()
-#
+if __name__ == "__main__":
+    s3_boto = boto3.client('s3', region_name='eu-west-2')
+    parquet_bucket = get_parquet_bucket_name()
+    with connect() as db:
+        res = db.run("SELECT * FROM dim_date LIMIT 100;")
+        pprint(res)
