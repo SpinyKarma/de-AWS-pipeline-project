@@ -4,7 +4,7 @@ import pyarrow.parquet as pq
 from pyarrow import fs
 import pg8000.native as pg
 import json
-from pprint import pprint
+# from pprint import pprint
 
 
 def loading_lambda_handler(event, context):
@@ -127,7 +127,10 @@ def insert_data(s3_py, file):
         # Queries to see what data exists in the yable already
         res = db.run(f'SELECT * FROM {pg.identifier(table)};')
         # Creates a list of primary keys that exist in the table
-        pk = [row[0] for row in res]
+        if table == "fact_sales_order":
+            pk = [row[1] for row in res]
+        else:
+            pk = [row[0] for row in res]
         rows_to_insert = []
         # For each row in the data set:
         for row in list_table:
@@ -188,9 +191,17 @@ class MissingBucketError(Exception):
         self.message = message
 
 
-if __name__ == "__main__":
-    s3_boto = boto3.client('s3', region_name='eu-west-2')
-    parquet_bucket = get_parquet_bucket_name()
-    with connect() as db:
-        res = db.run("SELECT * FROM dim_date LIMIT 100;")
-        pprint(res)
+# if __name__ == "__main__":
+#     s3_boto = boto3.client('s3', region_name='eu-west-2')
+#     parquet_bucket = get_parquet_bucket_name()
+#     s3_boto.put_object(Bucket=get_parquet_bucket_name(),
+#                        Key="cache.txt", Body="")
+#     with connect() as db:
+#         select_query = "SELECT * FROM fact_sales_order ORDER BY"
+#         select_query += " sales_order_id ASC LIMIT 1;"
+
+#         res = db.run(select_query)
+
+#         # res = db.run(
+#         #     "DELETE FROM fact_sales_order;")
+#         pprint(res)
