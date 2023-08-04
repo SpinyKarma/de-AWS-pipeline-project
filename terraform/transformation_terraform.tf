@@ -100,6 +100,7 @@ resource "aws_lambda_function_event_invoke_config" "transformation_trigger" {
     }
   }
 }
+
 resource "aws_lambda_permission" "transformation_lambda_event" {
   statement_id  = "AllowExecutionFromIngestionLambda"
   action        = "lambda:InvokeFunction"
@@ -112,26 +113,27 @@ resource "aws_lambda_permission" "transformation_lambda_event" {
 ####  ALARM AND METRICS  ####
 #############################
 
-# resource "aws_cloudwatch_log_metric_filter" "metric_label" {
-#   name           = "metric_name"
-#   pattern        = "PatternToSearchForInLogs"
-#   log_group_name = aws_cloudwatch_log_group.transformation_log_group.name
+resource "aws_cloudwatch_log_metric_filter" "transformation_missing_bucket_error_metric" {
+  name           = "metric_name"
+  pattern        = "Missing Bucket Error"
+  log_group_name = aws_cloudwatch_log_group.transformation_log_group.name
 
-#   metric_transformation {
-#     name      = "metric_name"
-#     namespace = "metric_name"
-#     value     = "1"
-#   }
-# }
+  metric_transformation {
+    name      = "missing_bucket_metric"
+    namespace = "missing_bucket_metric"
+    value     = "1"
+  }
+}
 
-# resource "aws_cloudwatch_metric_alarm" "alarm_label" {
-#   alarm_name          = "alarm_name"
-#   comparison_operator = "GreaterThanOrEqualToThreshold"
-#   evaluation_periods  = 1
-#   metric_name         = aws_cloudwatch_log_metric_filter.metric_label.metric_transformation[0].name
-#   namespace           = aws_cloudwatch_log_metric_filter.metric_label.metric_transformation[0].namespace
-#   period              = 60
-#   statistic           = "Sum"
-#   threshold           = "1"
-#   alarm_actions       = [aws_sns_topic.notification_topic.arn]
-# }
+resource "aws_cloudwatch_metric_alarm" "transformation_missing_bucket_error_alarm" {
+  alarm_name          = "missing_bucket_error_alarm"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = 1
+  metric_name         = "missing_bucket_metric"
+  namespace           = "missing_bucket_metric"
+  period              = 60
+  statistic           = "Sum"
+  threshold           = "1"
+  alarm_actions       = [aws_sns_topic.notification_topic.arn]
+}
+

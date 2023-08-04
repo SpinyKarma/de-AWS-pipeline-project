@@ -4,6 +4,7 @@ import json
 import pg8000.native as pg8000
 import csv
 from datetime import datetime as dt
+# from pprint import pprint
 
 
 def ingestion_lambda_handler(event, context):
@@ -235,3 +236,11 @@ def csv_to_s3(Bucket, updated_table_list):
             Key=f'{current_timestamp.isoformat()}/{table}.csv',
             ContentType='application/text'
         )
+
+
+# if __name__ == "__main__":
+#     with connect() as db:
+#         res = db.run(
+#             "SELECT * FROM sales_order ORDER BY sales_order_id ASC LIMIT 1;"
+#         )
+#         pprint(res)

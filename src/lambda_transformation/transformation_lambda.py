@@ -43,7 +43,7 @@ def transformation_lambda_handler(event, context):
         raise err
 
     # Create the dim date parquet file if it does not exist,
-    # this happens here as dim date does not need updating
+    # this happens here as dim date does not need updating once created
     if not dim_date_exists(s3, parquet_bucket):
         dim_date = gdd()
         csv_name, csv_body = back_to_csv(dim_date)
@@ -109,12 +109,12 @@ class MissingBucketError(Exception):
 
 
 def dim_date_exists(s3, bucket_name):
-    '''Bool for whether dim_date.parquet exists in the passed bucket.'''
+    '''Bool for whether dim_date exists in the passed bucket.'''
     res = s3.list_objects_v2(Bucket=bucket_name).get('Contents')
     if not res:
         return False
     keys = [obj['Key'] for obj in res]
-    return "dim_date.parquet" in keys
+    return "dim_date.parquet" in keys or "dim_date.csv" in keys
 
 
 def get_ingestion_bucket_name():
