@@ -8,9 +8,13 @@ from datetime import datetime as dt
 
 
 def ingestion_lambda_handler(event, context):
-    '''
+    ''' Will query the ingestion database at regular intervals and save the
+        results to csvs in an s3 bucket to await processing, using the s3
+        prefix system to only query that has been added or updated since the
+        last query.
     '''
     try:
+        # List of tables to query
         # will need updating if project is expended to payment and/or
         # transaction schemas
         table_names = [
@@ -22,21 +26,40 @@ def ingestion_lambda_handler(event, context):
             'sales_order',
             'staff',
         ]
+
+        # The name of th s3 bucket that the csvs will be saved to
         bucket_name = get_ingestion_bucket_name()
+        logging.info(f"Ingestion bucket established as {bucket_name}.")
+
+        # Uses the timestamp prefixes in s3 to determine when the most recent
+        # ingestion was
         last = get_last_ingestion_timestamp(bucket_name)
+        logging.info(
+            f"Most recent timestamp saved to bucket is {last.isoformat()}"
+        )
+
+        # Uses the most recent ingestion timestamp to query the database for
+        # recent additions
         csvs_to_update = extract_table_to_csv(table_names, last)
+
+        # Writes the returned query data to the s3 bucket in csv form under a
+        # new timestamp prefix
         csv_to_s3(bucket_name, csvs_to_update)
+
     except TableIngestionError as error:
         logging.error(f'Table Ingestion Error: {error.message}')
         raise error
+
     except InvalidCredentialsError as error:
         logging.error(f'Invalid Credentials Error: {error}')
         raise error
+
     except NonTimestampedCSVError as error:
         err_str = 'A CSV is in the bucket without a timestamp, '
         err_str += f'remove all non-timestamped CSVs: {error}'
         logging.error(err_str)
         raise error
+
     except Exception as error:
         logging.error(f'An unexpected error occured: {error}')
         raise error
@@ -72,6 +95,7 @@ def get_credentials(secret_name='Ingestion_credentials'):
         Args:
             secet_name: The name of the secret to extract credentials from,
             defaults to Ingestion_credentials. Also takes Warehouse_credentials
+            for establishing a connection to the data warehouse instead.
 
         Returns:
             credentials: A dictionary containing:
@@ -108,7 +132,9 @@ def get_credentials(secret_name='Ingestion_credentials'):
 
 
 def connect(db="ingestion"):
-    """Will return a connection to the DB, to be used with context manager."""
+    """ Will return a connection to the ingestion database. If passed the
+        argument "warehouse", will instead establish a connection to the data
+        warehouse. To be used with context manager. """
     if db == "warehouse":
         credentials = get_credentials("Warehouse_credentials")
 
@@ -145,7 +171,8 @@ class CsvBuilder:
 
 
 def get_last_ingestion_timestamp(Bucket):
-    '''Extracts the timestamp of the most recently added csv.
+    ''' Extracts the timestamp of the most recently added csv in the passed
+        bucket.
 
     Args:
         Bucket: Name of the bucket to pull csvs from.
@@ -171,13 +198,14 @@ def get_last_ingestion_timestamp(Bucket):
 
 
 def extract_table_to_csv(table_list, last_timestamp):
-    '''Runs a query on the given table filtered by the given timestamp.
+    ''' Runs a query on the given tables filtered by the given timestamp to
+        return only newly added data.
 
     Args:
         table_list: The list of table names to query.
 
-        timestamp: A datetime.datetime object, all entries with a last_updated
-        key more recent than this will be pulled from the table.
+        last_timestamp: A datetime.datetime object, all entries with a
+        last_updated key more recent than this will be pulled from the table.
 
     Returns:
         updated_tables: A dict of each table name that had a return from the
@@ -194,6 +222,12 @@ def extract_table_to_csv(table_list, last_timestamp):
                 result = db.run(query_str)
             except Exception:
                 raise TableIngestionError(f"Error querying {table_name} table")
+            if result == []:
+                logging.info(
+                    f"No new data in {table_name} since last ingestion."
+                )
+            else:
+                logging.info(f"Compiling new data from {table_name} to csv.")
             column_names = [column['name'] for column in db.columns]
             rows = [dict(zip(column_names, row)) for row in result]
             csv_builder = CsvBuilder()
@@ -208,14 +242,11 @@ def extract_table_to_csv(table_list, last_timestamp):
 
 
 def csv_to_s3(Bucket, updated_table_list):
-    '''Extracts new csv data from each table and appends to files in bucket.
-
-    Queries each table in the database and writes the contents to a csv file
-    in the S3 bucket. If the csv file already exists and there is new data in
-    the tables, then appends the new data to the csvs.
+    ''' Extracts new csv data from each table and saves to timestamped files in
+        the bucket.
 
     Args:
-        Bucket: Name of the bucket to modify the csvs of.
+        Bucket: Name of the bucket to add csvs to.
 
         updated_table_list: A dict of the table names to perform the function
         on, paired with the csv data to write.
@@ -224,16 +255,18 @@ def csv_to_s3(Bucket, updated_table_list):
         None
 
     Side-effects:
-        Uploads the csvs with new data to S3.
+        Uploads the tmiestamped csvs with new data to S3.
     '''
     current_timestamp = dt.now()
     s3_client = boto3.client("s3")
     for table in updated_table_list.keys():
+        key = f'{current_timestamp.isoformat()}/{table}.csv'
+        logging.info(f'Writing "{key}" to bucket.')
         output_csv = updated_table_list[table]
         s3_client.put_object(
             Body=output_csv,
             Bucket=Bucket,
-            Key=f'{current_timestamp.isoformat()}/{table}.csv',
+            Key=key,
             ContentType='application/text'
         )
 
