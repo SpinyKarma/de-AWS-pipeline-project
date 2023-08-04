@@ -194,14 +194,24 @@ class MissingBucketError(Exception):
 # if __name__ == "__main__":
 #     s3_boto = boto3.client('s3', region_name='eu-west-2')
 #     parquet_bucket = get_parquet_bucket_name()
-#     s3_boto.put_object(Bucket=get_parquet_bucket_name(),
-#                        Key="cache.txt", Body="")
+#     try:
+#         cache_txt = s3_boto.get_object(
+#             Bucket=parquet_bucket,
+#             Key='cache.txt'
+#         )['Body'].read().decode('utf-8').split("\n")
+#         if cache_txt == [""]:
+#             cache_txt = []
+#     except s3_boto.exceptions.NoSuchKey:
+#         # s3_boto.put_object(Bucket=parquet_bucket, Key='cache.txt', Body='')
+#         cache_txt = []
+#     print(cache_txt)
 #     with connect() as db:
 #         select_query = "SELECT * FROM fact_sales_order ORDER BY"
 #         select_query += " sales_order_id ASC LIMIT 1;"
 
 #         res = db.run(select_query)
+#         print(res)
 
-#         # res = db.run(
-#         #     "DELETE FROM fact_sales_order;")
-#         pprint(res)
+#         res = db.run(
+#             "DELETE FROM fact_sales_order;")
+#         print(res)
