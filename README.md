@@ -1,4 +1,9 @@
 ## Data-Dynamics ETL Platform
+![Postgres](https://img.shields.io/badge/postgres-%23316192.svg?style=for-the-badge&logo=postgresql&logoColor=white)
+![AWS](https://img.shields.io/badge/AWS-%23FF9900.svg?style=for-the-badge&logo=amazon-aws&logoColor=white)
+![Terraform](https://img.shields.io/badge/terraform-%235835CC.svg?style=for-the-badge&logo=terraform&logoColor=white)
+![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
+![Pandas](https://img.shields.io/badge/pandas-%23150458.svg?style=for-the-badge&logo=pandas&logoColor=white)
 
 
 A data engineering application built in python that pipes structured data from a database into a data warehouse. The primary data source for the project is a moderately complex (but not very large) database called totesys which is meant to simulate the back end data of a commercial application. Data is inserted and updated into this database several times a day. After extraction, the process transforms the data to parquet files formatted for easy insertion to a data warehouse, using a second S3 bucket and finally uses the data to populate a star-schema data warehouse.
