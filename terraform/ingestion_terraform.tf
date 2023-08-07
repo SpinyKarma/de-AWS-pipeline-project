@@ -1,6 +1,7 @@
-##############################################
-####  INGESTION LAMBDA POLICIES AND ROLES ####
-##############################################
+########################################################
+####  INGESTION LAMBDA ROLE AND POLICY ATTACHMENTS  ####
+########################################################
+
 
 resource "aws_iam_role" "ingestion_lambda_role" {
   name_prefix        = "role-ingestion-"
@@ -22,6 +23,10 @@ resource "aws_iam_role" "ingestion_lambda_role" {
         ]
     }
     EOF
+  tags = {
+    Project = "Northcoders-AWS-ETL-pipeline"
+    Lambda = "Ingestion"
+  }
 }
 
 resource "aws_iam_role_policy_attachment" "ingestion_s3_write_policy_attachment" {
@@ -51,18 +56,24 @@ resource "aws_iam_role_policy_attachment" "ingestion_sns_publish_policy_attachme
 
 
 
-######################
-####  LOG GROUP   ####
-######################
+###############################
+####  INGESTION LOG GROUP  ####
+###############################
+
 
 resource "aws_cloudwatch_log_group" "ingestion_log_group" {
   name = "/aws/lambda/${aws_lambda_function.ingestion_lambda.function_name}"
+  tags = {
+    Project = "Northcoders-AWS-ETL-pipeline"
+    Lambda = "Ingestion"
+  }
 }
 
 
 ############################
 ####  INGESTION LAMBDA  ####
 ############################
+
 
 data "archive_file" "ingestion_lambda_zip" {
   type        = "zip"
@@ -76,6 +87,10 @@ resource "aws_s3_object" "ingestion_lambda_code" {
   acl         = "private"
   source      = data.archive_file.ingestion_lambda_zip.output_path
   source_hash = data.archive_file.ingestion_lambda_zip.output_base64sha256
+  tags = {
+    Project = "Northcoders-AWS-ETL-pipeline"
+    Lambda = "Ingestion"
+  }
 }
 
 resource "aws_lambda_function" "ingestion_lambda" {
@@ -88,17 +103,26 @@ resource "aws_lambda_function" "ingestion_lambda" {
   timeout          = "60"
   source_code_hash = data.archive_file.ingestion_lambda_zip.output_base64sha256
   layers           = [aws_lambda_layer_version.lambda_requirements_layer.arn]
+  tags = {
+    Project = "Northcoders-AWS-ETL-pipeline"
+    Lambda = "Ingestion"
+  }
 }
 
 
-########################
-####  EVENT BRIDGE  ####
-########################
+################################
+####  EVENT BRIDGE TRIGGER  ####
+################################
+
 
 resource "aws_cloudwatch_event_rule" "ingestion_lambda_rule" {
   name                = "ingestion_lambda_rule"
   schedule_expression = "rate(3 minutes)"
   is_enabled          = true
+  tags = {
+    Project = "Northcoders-AWS-ETL-pipeline"
+    Lambda = "Ingestion"
+  }
 }
 
 resource "aws_cloudwatch_event_target" "ingestion_lambda_target" {
@@ -116,9 +140,10 @@ resource "aws_lambda_permission" "ingestion_lambda_event" {
 }
 
 
-#############################
-####  ALARM AND METRICS  ####
-#############################
+##############################
+####  ALARMS AND METRICS  ####
+##############################
+
 
 resource "aws_cloudwatch_log_metric_filter" "table_ingestion_error_metric" {
   name           = "table_ingestion_error_metric"
@@ -141,8 +166,11 @@ resource "aws_cloudwatch_metric_alarm" "table_ingestion_error_alarm" {
   period              = 60
   statistic           = "Sum"
   threshold           = "1"
-
-  alarm_actions = [aws_sns_topic.notification_topic.arn]
+  alarm_actions       = [aws_sns_topic.notification_topic.arn]
+  tags = {
+    Project = "Northcoders-AWS-ETL-pipeline"
+    Lambda = "Ingestion"
+  }
 }
 
 resource "aws_cloudwatch_log_metric_filter" "invalid_credentials_error_metric" {
@@ -166,8 +194,11 @@ resource "aws_cloudwatch_metric_alarm" "invalid_credentials_error_alarm" {
   period              = 60
   statistic           = "Sum"
   threshold           = "1"
-
-  alarm_actions = [aws_sns_topic.notification_topic.arn]
+  alarm_actions       = [aws_sns_topic.notification_topic.arn]
+  tags = {
+    Project = "Northcoders-AWS-ETL-pipeline"
+    Lambda = "Ingestion"
+  }
 }
 
 resource "aws_cloudwatch_log_metric_filter" "no_timestamp_error_metric" {
@@ -191,8 +222,11 @@ resource "aws_cloudwatch_metric_alarm" "no_timestamp_error_alarm" {
   period              = 60
   statistic           = "Sum"
   threshold           = "1"
-
-  alarm_actions = [aws_sns_topic.notification_topic.arn]
+  alarm_actions       = [aws_sns_topic.notification_topic.arn]
+  tags = {
+    Project = "Northcoders-AWS-ETL-pipeline"
+    Lambda = "Ingestion"
+  }
 }
 
 
@@ -217,20 +251,11 @@ resource "aws_cloudwatch_metric_alarm" "exception_error_alarm" {
   period              = 60
   statistic           = "Sum"
   threshold           = "1"
-
-  alarm_actions = [aws_sns_topic.notification_topic.arn]
+  alarm_actions       = [aws_sns_topic.notification_topic.arn]
+  tags = {
+    Project = "Northcoders-AWS-ETL-pipeline"
+    Lambda = "Ingestion"
+  }
 }
-
-# resource "aws_cloudwatch_log_metric_filter" "ingestion_end" {
-#   name           = "ingestion_end"
-#   pattern        = "END"
-#   log_group_name = "/aws/lambda/${aws_lambda_function.ingestion_lambda.function_name}"
-
-#   metric_transformation {
-#     name      = "ingestion_end"
-#     namespace = "ingestion_end"
-#     value     = "1"
-#   }
-# }
 
 

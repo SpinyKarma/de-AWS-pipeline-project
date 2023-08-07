@@ -1,6 +1,7 @@
-###################################################
-####  TRANSFORMATION STAGE 2 LAMBDA POLICIES AND ROLES ####
-###################################################
+##############################################################
+####  TRANSFORMATION STAGE 2 ROLE AND POLICY ATTACHMENTS  ####
+##############################################################
+
 
 resource "aws_iam_role" "transformation_stage_2_lambda_role" {
   name_prefix        = "role-transformation_stage_2-"
@@ -22,6 +23,10 @@ resource "aws_iam_role" "transformation_stage_2_lambda_role" {
         ]
     }
     EOF
+  tags = {
+    Project = "Northcoders-AWS-ETL-pipeline"
+    Lambda  = "Transformation-stage-2"
+  }
 }
 
 resource "aws_iam_role_policy_attachment" "transformation_stage_2_s3_write_policy_attachment" {
@@ -45,12 +50,17 @@ resource "aws_iam_role_policy_attachment" "transformation_stage_2_sns_publish_po
 }
 
 
-######################
-####  LOG GROUP   ####
-######################
+############################################
+####  TRANSFORMATION STAGE 2 LOG GROUP  ####
+############################################
+
 
 resource "aws_cloudwatch_log_group" "transformation_stage_2_log_group" {
   name = "/aws/lambda/${aws_lambda_function.transformation_stage_2_lambda.function_name}"
+  tags = {
+    Project = "Northcoders-AWS-ETL-pipeline"
+    Lambda  = "Transformation-stage-2"
+  }
 }
 
 
@@ -71,6 +81,10 @@ resource "aws_s3_object" "transformation_stage_2_lambda_code" {
   acl         = "private"
   source      = data.archive_file.transformation_stage_2_lambda_zip.output_path
   source_hash = data.archive_file.transformation_stage_2_lambda_zip.output_base64sha256
+  tags = {
+    Project = "Northcoders-AWS-ETL-pipeline"
+    Lambda  = "Transformation-stage-2"
+  }
 }
 
 resource "aws_lambda_function" "transformation_stage_2_lambda" {
@@ -83,11 +97,17 @@ resource "aws_lambda_function" "transformation_stage_2_lambda" {
   timeout          = "60"
   source_code_hash = data.archive_file.transformation_stage_2_lambda_zip.output_base64sha256
   layers           = [aws_lambda_layer_version.lambda_requirements_layer_2.arn]
+  tags = {
+    Project = "Northcoders-AWS-ETL-pipeline"
+    Lambda  = "Transformation-stage-2"
+  }
 }
 
-################################
-###  TRANSFORMATION STAGE 2 TRIGGER  ###
-################################
+
+#########################################
+###  TRANSFORMATION STAGE 2 TRIGGER  ####
+#########################################
+
 
 resource "aws_lambda_function_event_invoke_config" "transformation_stage_2_trigger" {
   function_name = aws_lambda_function.transformation_lambda.function_name
@@ -108,9 +128,11 @@ resource "aws_lambda_permission" "transformation_stage_2_lambda_event" {
   source_arn    = aws_lambda_function.ingestion_lambda.arn
 }
 
-############################
-####  ALARM AND METRICS  ####
-#############################
+
+##############################
+####  ALARMS AND METRICS  ####
+##############################
+
 
 # resource "aws_cloudwatch_log_metric_filter" "metric_label" {
 #   name           = "metric_name"
@@ -134,4 +156,8 @@ resource "aws_lambda_permission" "transformation_stage_2_lambda_event" {
 #   statistic           = "Sum"
 #   threshold           = "1"
 #   alarm_actions       = [aws_sns_topic.notification_topic.arn]
+#   tags = {
+#     Project = "Northcoders-AWS-ETL-pipeline"
+#     Lambda  = "Transformation-stage-2"
+#   }
 # }

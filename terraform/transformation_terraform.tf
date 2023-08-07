@@ -1,6 +1,7 @@
-###################################################
-####  TRANSFORMATION LAMBDA POLICIES AND ROLES ####
-###################################################
+#############################################################
+####  TRANSFORMATION LAMBDA ROLE AND POLICY ATTACHMENTS  ####
+#############################################################
+
 
 resource "aws_iam_role" "transformation_lambda_role" {
   name_prefix        = "role-transformation-"
@@ -22,6 +23,10 @@ resource "aws_iam_role" "transformation_lambda_role" {
         ]
     }
     EOF
+  tags = {
+    Project = "Northcoders-AWS-ETL-pipeline"
+    Lambda  = "Transformation"
+  }
 }
 
 resource "aws_iam_role_policy_attachment" "transformation_s3_write_policy_attachment" {
@@ -45,12 +50,17 @@ resource "aws_iam_role_policy_attachment" "transformation_sns_publish_policy_att
 }
 
 
-######################
-####  LOG GROUP   ####
-######################
+####################################
+####  TRANSFORMATION LOG GROUP  ####
+####################################
+
 
 resource "aws_cloudwatch_log_group" "transformation_log_group" {
   name = "/aws/lambda/${aws_lambda_function.transformation_lambda.function_name}"
+  tags = {
+    Project = "Northcoders-AWS-ETL-pipeline"
+    Lambda  = "Transformation"
+  }
 }
 
 
@@ -71,6 +81,10 @@ resource "aws_s3_object" "transformation_lambda_code" {
   acl         = "private"
   source      = data.archive_file.transformation_lambda_zip.output_path
   source_hash = data.archive_file.transformation_lambda_zip.output_base64sha256
+  tags = {
+    Project = "Northcoders-AWS-ETL-pipeline"
+    Lambda  = "Transformation"
+  }
 }
 
 resource "aws_lambda_function" "transformation_lambda" {
@@ -83,11 +97,17 @@ resource "aws_lambda_function" "transformation_lambda" {
   timeout          = "60"
   source_code_hash = data.archive_file.transformation_lambda_zip.output_base64sha256
   layers           = [aws_lambda_layer_version.lambda_requirements_layer.arn]
+  tags = {
+    Project = "Northcoders-AWS-ETL-pipeline"
+    Lambda  = "Transformation"
+  }
 }
+
 
 ################################
 ###  TRANSFORMATION TRIGGER  ###
 ################################
+
 
 resource "aws_lambda_function_event_invoke_config" "transformation_trigger" {
   function_name = aws_lambda_function.ingestion_lambda.function_name
@@ -109,9 +129,11 @@ resource "aws_lambda_permission" "transformation_lambda_event" {
   source_arn    = aws_lambda_function.ingestion_lambda.arn
 }
 
-#############################
-####  ALARM AND METRICS  ####
-#############################
+
+##############################
+####  ALARMS AND METRICS  ####
+##############################
+
 
 resource "aws_cloudwatch_log_metric_filter" "transformation_missing_bucket_error_metric" {
   name           = "metric_name"
@@ -135,5 +157,9 @@ resource "aws_cloudwatch_metric_alarm" "transformation_missing_bucket_error_alar
   statistic           = "Sum"
   threshold           = "1"
   alarm_actions       = [aws_sns_topic.notification_topic.arn]
+  tags = {
+    Project = "Northcoders-AWS-ETL-pipeline"
+    Lambda  = "Transformation"
+  }
 }
 
