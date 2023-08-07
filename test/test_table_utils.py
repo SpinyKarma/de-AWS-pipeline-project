@@ -14,12 +14,22 @@ SEPERATOR = '/'
 
 
 def test_get_tables_returns_list():
+    """
+    Test whether the function 'get_tables' returns a list.
+    """
+
     tables = get_tables()
     assert isinstance(tables, list)
 
 
 @mock_s3
 def test_get_tables_returns_list_of_tables():
+    """
+    Test whether the function 'get_tables' returns a list of table names,
+    sorted in descending order by timestamp, when retrieving tables from
+    the S3 bucket.
+    """
+
     s3_client = boto3.client('s3', region_name='us-east-1')
 
     bucket_name = 'terrific-totes-ingestion-bucket20230725102602583400000001'
@@ -68,6 +78,11 @@ def test_get_tables_returns_list_of_tables():
 
 @mock_s3
 def test_get_most_recent_table():
+    """
+    Test whether the function 'get_most_recent_table' returns the most
+    recent table name from the S3 bucket when given a table name.
+    """
+
     s3_client = boto3.client('s3', region_name='us-east-1')
     bucket_name = 'terrific-totes-ingestion-bucket20230725102602583400000001'
     s3_client.create_bucket(Bucket=bucket_name)
@@ -96,6 +111,11 @@ def test_get_most_recent_table():
 
 @mock_s3
 def test_get_tables_throws_empty_bucket_error():
+    """
+    Test whether the function 'get_tables' raises an EmptyBucketError when
+    the S3 bucket is empty.
+    """
+
     bucket_name = 'terrific-totes-ingestion-bucket20230725102602583400000001'
     s3_client = boto3.client('s3', region_name='us-east-1')
     s3_client.create_bucket(Bucket=bucket_name)
@@ -106,6 +126,12 @@ def test_get_tables_throws_empty_bucket_error():
 
 @mock_s3
 def test_get_most_recent_table_throws_table_not_found_error():
+    """
+    Test whether the function 'get_most_recent_table' raises a
+    TableNotFoundError when the given table name does not exist in the
+    S3 bucket.
+    """
+
     bucket_name = 'terrific-totes-ingestion-bucket20230725102602583400000001'
     s3_client = boto3.client('s3', region_name='us-east-1')
     s3_client.create_bucket(Bucket=bucket_name)
