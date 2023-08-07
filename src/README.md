@@ -1,6 +1,6 @@
 # Python Source Directory
 
-Here we store carpenmentalize our lambda functions.
+Here we carpenmentalize our lambda functions.
 
 | Lambda Name       | Description                                                                                      |
 | ----------------- |--------------------------------------------------------------------------------------------------|
