@@ -68,7 +68,7 @@ def test_convert_ingestion_credentials_raises_Error_on_null_credential():
         )
 
 
-def test_convert_ingestion_wraehouse_returns_valid_json():
+def test_convert_ingestion_warehouse_returns_valid_json():
     example = '{"hostname": "examplehostname", "port": "1234", '
     example += '"db": "exampledb", "username": "exampleusername", '
     example += '"password": "examplepassword"}'
