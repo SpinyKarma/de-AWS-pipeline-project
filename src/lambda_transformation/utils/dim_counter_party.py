@@ -41,7 +41,7 @@ def counter_party_address_to_dim_counterparty(counterparty_dict, address_dict):
         'phone'
     ]].copy()
 
-    # Rename dim_counterparty columns name to match 
+    # Rename dim_counterparty columns name to match
     # the columns name of dim_counterparty table
     dim_counterparty.rename(
         columns={
