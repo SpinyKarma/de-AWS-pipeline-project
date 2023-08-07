@@ -1,3 +1,8 @@
+##########################
+####  LAMBDA LAYER 1  ####
+##########################
+
+
 data "archive_file" "lambda_layer_zip" {
   type        = "zip"
   source_dir  = "${path.module}/../lambda_layer"
@@ -10,6 +15,9 @@ resource "aws_s3_object" "lambda_layer_code" {
   acl         = "private"
   source      = data.archive_file.lambda_layer_zip.output_path
   source_hash = data.archive_file.lambda_layer_zip.output_base64sha256
+  tags = {
+    Project = "Northcoders-AWS-ETL-pipeline"
+  }
 }
 
 resource "aws_lambda_layer_version" "lambda_requirements_layer" {
@@ -19,6 +27,12 @@ resource "aws_lambda_layer_version" "lambda_requirements_layer" {
   compatible_runtimes = ["python3.10"]
   source_code_hash    = data.archive_file.lambda_layer_zip.output_base64sha256
 }
+
+
+##########################
+####  LAMBDA LAYER 2  ####
+##########################
+
 
 data "archive_file" "lambda_layer_zip_2" {
   type        = "zip"
@@ -32,6 +46,9 @@ resource "aws_s3_object" "lambda_layer_code_2" {
   acl         = "private"
   source      = data.archive_file.lambda_layer_zip_2.output_path
   source_hash = data.archive_file.lambda_layer_zip_2.output_base64sha256
+  tags = {
+    Project = "Northcoders-AWS-ETL-pipeline"
+  }
 }
 
 resource "aws_lambda_layer_version" "lambda_requirements_layer_2" {
