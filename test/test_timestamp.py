@@ -9,7 +9,7 @@ from src.lambda_ingestion.ingestion_lambda import (
     NonTimestampedCSVError
 )
 from unittest.mock import Mock, patch
-# from pprint import pprint
+
 # function returning a sample csv string for testing
 current_timestamp = dt.now().isoformat()
 

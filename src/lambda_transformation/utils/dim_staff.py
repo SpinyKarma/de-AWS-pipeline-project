@@ -22,9 +22,6 @@ def staff_department_to_dim_staff(staff_dict, department_dict):
     timestamp.sort(reverse=True)
     timestamp = timestamp[0]
 
-    ##Timestamp is already a string, can't isoformat it
-    #isoformat_timestamp = timestamp.isoformat()
-
     '''
         Create dim_staff by merging the dataframes
     '''
@@ -37,7 +34,6 @@ def staff_department_to_dim_staff(staff_dict, department_dict):
         'department_name',
         'location',
     ]]
-    ## isoformat_string was breaking it because you were calling the isoformat function on a string
     return {'Key': f'{timestamp}/dim_staff.csv',
             'Body': dim_staff,
             'Timestamp': timestamp}
