@@ -34,8 +34,8 @@ test_counterparty = {
 
 
 def test_that_the_function_return_a_dict_with_desired_keys():
-    """
-    Test whether the function 'counter_party_address_to_dim_counterparty' returns a dictionary with the desired keys.
+    """ Test whether the function 'counter_party_address_to_dim_counterparty'
+        returns a dictionary with the desired keys.
     """
     result = util.counter_party_address_to_dim_counterparty(
         test_counterparty, test_address)
@@ -43,8 +43,9 @@ def test_that_the_function_return_a_dict_with_desired_keys():
 
 
 def test_timestamp_carried_over():
-    """
-    Test whether the timestamp is carried over correctly in the output dictionary when converting counterparty and address data to 'dim_counterparty'.
+    """ Test whether the timestamp is carried over correctly in the output
+        dictionary when converting counterparty and address data to
+        'dim_counterparty'.
     """
     output = util.counter_party_address_to_dim_counterparty(
         test_counterparty, test_address)
@@ -54,18 +55,18 @@ def test_timestamp_carried_over():
 
 
 def test_that_the_result_body_of_the_dim_counterparty_is_DataFrame_Dict():
-    """
-    Test whether the 'Body' value in the output dictionary is a Pandas DataFrame.
+    """ Test whether the 'Body' value in the output dictionary is a Pandas
+        DataFrame.
     """
     result = util.counter_party_address_to_dim_counterparty(
         test_counterparty, test_address)
     assert isinstance(result['Body'], pd.DataFrame)
 
 
-def test_address_and_counterparty_join_into_dim_counterparty_dict_when_columns_missing_from_address_csv():
-    '''
-    Test whether the function 'counter_party_address_to_dim_counterparty' raises a KeyError when the 
-    address DataFrame is missing a column that is required for joining with the counterparty DataFrame.
+def test_raise_KeyError_when_columns_missing_from_address_csv():
+    ''' Test whether the function 'counter_party_address_to_dim_counterparty'
+        raises a KeyError when the address DataFrame is missing a column that
+        is required for joining with the counterparty DataFrame.
 
     example of testing address dict with missing column
     this is the missing column from the address.csv 'phone':['00441484555333']
