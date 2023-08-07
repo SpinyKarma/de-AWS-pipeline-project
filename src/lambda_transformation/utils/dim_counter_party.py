@@ -19,11 +19,10 @@ def counter_party_address_to_dim_counterparty(counterparty_dict, address_dict):
             "Key": the key of the dim_counterparty file
             "Body": a pandas dataframe of the dim_counterparty contents.
     '''
-
     key = address_dict['Key']
     address = address_dict['Body']
     counterparty = counterparty_dict['Body']
-# merge the two files above in order to create a dim_counterparty.csv
+    # create a dim_counterparty.csv by Merge address.csv and counterparty.csv
     m_data = pd.merge(counterparty,
                       address,
                       left_on='legal_address_id',
@@ -42,7 +41,8 @@ def counter_party_address_to_dim_counterparty(counterparty_dict, address_dict):
         'phone'
     ]].copy()
 
-# rename dim_counterparty columns name
+    # Rename dim_counterparty columns name to match
+    # the columns name of dim_counterparty table
     dim_counterparty.rename(
         columns={
             'counterparty_id': 'counterparty_id',
@@ -60,7 +60,6 @@ def counter_party_address_to_dim_counterparty(counterparty_dict, address_dict):
 
     # concatenate the key with the dim_counterparty
     new_key = key.split('/')[0]+"/dim_counterparty.csv"
-    # new_key=f'{isoformat_timestamp}/dim_counterparty.csv'
-    # make dict and return it
+    # make dict of key and body then return it
     dim_counterparty_dict = {"Key": new_key, "Body": dim_counterparty}
     return dim_counterparty_dict
