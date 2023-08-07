@@ -38,9 +38,8 @@ expected_dim_location_dict = {
 
 
 def test_body_of_return_is_correct_format():
-    """
-    Test whether the 'Body' value in the output dictionary of the function
-    'address_to_dim_location' has the correct column format.
+    """ Test whether the 'Body' value in the output dictionary of the function
+        'address_to_dim_location' has the correct column format.
     """
     output = atdl(fake_address_dict)
     output_cols = list(output['Body'].columns)
@@ -49,9 +48,9 @@ def test_body_of_return_is_correct_format():
 
 
 def test_timestamp_is_carried_over_from_input_to_output():
-    """
-    Test whether the function 'address_to_dim_location' carries
-    over the timestamp correctly from the input dictionary to the output dictionary.
+    """ Test whether the function 'address_to_dim_location' carries
+        over the timestamp correctly from the input dictionary to the output
+        dictionary.
     """
     output = atdl(fake_address_dict)
     output_timestamp = output['Key'].split("/")[0]
@@ -60,10 +59,14 @@ def test_timestamp_is_carried_over_from_input_to_output():
 
 
 def test_overall_formatting_success():
+    """ Test whether the function 'address_to_dim_location' correctly formats
+        the input address dictionary and returns the expected output for
+        'dim_location'.
     """
-    Test whether the function 'address_to_dim_location' correctly formats
-    the input address dictionary and returns the expected output for 'dim_location'.
-    """
-    output = atdl(fake_address_dict)
-    output_comparison = dict(output['Body'])
-    expected_comparison = dict(expected_dim_location_dict['Body'])
+    output = atdl(fake_address_dict)['Body']
+    expected = expected_dim_location_dict['Body']
+    out_cols = output.columns
+    exp_cols = expected.columns
+    assert list(out_cols) == list(exp_cols)
+    for col in exp_cols:
+        assert list(output.get(col)) == list(expected.get(col))

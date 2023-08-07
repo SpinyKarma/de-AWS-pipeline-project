@@ -1,6 +1,5 @@
 import pytest
 import src.lambda_transformation.utils.dim_counter_party as util
-import src.lambda_transformation.utils.get_tables as tables
 import pandas as pd
 
 
@@ -67,9 +66,6 @@ def test_raise_KeyError_when_columns_missing_from_address_csv():
     ''' Test whether the function 'counter_party_address_to_dim_counterparty'
         raises a KeyError when the address DataFrame is missing a column that
         is required for joining with the counterparty DataFrame.
-
-    example of testing address dict with missing column
-    this is the missing column from the address.csv 'phone':['00441484555333']
     '''
     address_dict_missing_column = {
         'Key': 'address.csv',
@@ -89,11 +85,3 @@ def test_raise_KeyError_when_columns_missing_from_address_csv():
     with pytest.raises(KeyError):
         util.counter_party_address_to_dim_counterparty(
             test_counterparty, address_dict_missing_column)
-
-
-if __name__ == '__main__':
-    address = tables.read_table('address.csv')
-    counterparty = tables.read_table('counterparty.csv')
-    result = util.counter_party_address_to_dim_counterparty(
-        counterparty, address)
-    print(result)

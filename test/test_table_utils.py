@@ -26,10 +26,7 @@ def test_get_tables_returns_list_of_tables():
     s3_client.create_bucket(
         Bucket=bucket_name)
 
-    '''
-        Please do not change this without updating
-        expected_result accordingly.
-    '''
+    # Please do not change this without updating expected_result accordingly.
     timestamps = [
         dt(1980, 1, 2).isoformat(),
         dt(1980, 3, 1).isoformat(),
@@ -43,9 +40,7 @@ def test_get_tables_returns_list_of_tables():
 
     filename = 'test-table.csv'
 
-    '''
-        The most recent tables are first.
-    '''
+    # The most recent tables are first.
     expected_result = [
         f'2000-01-01T00:00:00{SEPERATOR}{filename}',
         f'1980-03-01T00:00:00{SEPERATOR}{filename}',
@@ -58,7 +53,7 @@ def test_get_tables_returns_list_of_tables():
     filenames = [
         f'{timestamp}{SEPERATOR}{filename}' for timestamp in timestamps]
 
-    # put fake files in bucket
+    # Put fake files in bucket
     for filename in filenames:
         s3_client.put_object(
             Body="",
@@ -78,9 +73,7 @@ def test_get_most_recent_table():
     s3_client.create_bucket(Bucket=bucket_name)
     tablename = 'test-table.csv'
 
-    """
-        Please do not change this
-    """
+    # Please do not change this
     files = [
         f'2000-01-01T00:00:00{SEPERATOR}{tablename}',
         f'1980-03-01T00:00:00{SEPERATOR}{tablename}',
@@ -89,7 +82,7 @@ def test_get_most_recent_table():
         f'1970-01-01T00:00:00{SEPERATOR}{tablename}',
         f'1964-01-01T00:00:00{SEPERATOR}{tablename}'
     ]
-    # put fake files in bucket
+    # Put fake files in bucket
     for filename in files:
         s3_client.put_object(
             Body="",
