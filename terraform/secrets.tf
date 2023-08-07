@@ -1,13 +1,3 @@
-import {
-  to = aws_secretsmanager_secret.ingestion_secret
-  id = "arn:aws:secretsmanager:eu-west-2:967289384825:secret:Ingestion_credentials-6Ce145"
-}
-
-import {
-  to = aws_secretsmanager_secret_version.ingestion_secret_version
-  id = "arn:aws:secretsmanager:eu-west-2:967289384825:secret:Ingestion_credentials-6Ce145|a7d72a7c-ab09-4dec-a7e0-57bcfbe6aea5"
-}
-
 resource "aws_secretsmanager_secret" "ingestion_secret" {
   name = "Ingestion_credentials"
   tags = {
