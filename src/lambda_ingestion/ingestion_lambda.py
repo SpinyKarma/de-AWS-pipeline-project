@@ -125,7 +125,7 @@ def get_credentials(secret_name='Ingestion_credentials'):
         ]
     }
 
-    if list(credentials.keys()) != required_keys[secret_name]:
+    if sorted(list(credentials.keys())) != sorted(required_keys[secret_name]):
         raise InvalidCredentialsError(credentials)
 
     return credentials
