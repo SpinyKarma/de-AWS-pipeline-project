@@ -5,6 +5,10 @@ import boto3
 
 
 def test_ingestion_bucket_name():
+    """
+    Test whether the function 'get_ingestion_bucket_name' returns the
+    correct name of the ingestion bucket with the timestamp appended.
+    """
     name = i.get_ingestion_bucket_name()
     correct_name = 'terrific-totes-ingestion-bucket'
     correct_name += '20230725102602583400000001'
@@ -13,6 +17,10 @@ def test_ingestion_bucket_name():
 
 @mock_secretsmanager
 def test_get_credentials_throws_Exception_on_no_credentials():
+    """
+    Test whether the function 'get_credentials' raises an Exception when
+    no credentials are found in the AWS Secrets Manager.
+    """
     with pytest.raises(Exception):
         i.get_credentials()
 

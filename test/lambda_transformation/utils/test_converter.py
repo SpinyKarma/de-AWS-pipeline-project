@@ -3,6 +3,12 @@ import src.converter as converter
 
 
 def test_convert_warehouse_credentials_raises_Error_on_null_credential():
+    """
+    Test whether the function 'convert_warehouse_credentials' raises a
+    'NullCredentialsError' when any of the credential parameters
+    (hostname, port, schema, user, or password) is passed as None.
+    """
+
     with pytest.raises(converter.NullCredentialsError):
         converter.convert_warehouse_credentials(
             None, "port", "schema", "user", "password"
@@ -30,6 +36,13 @@ def test_convert_warehouse_credentials_raises_Error_on_null_credential():
 
 
 def test_convert_warehouse_credentials_returns_valid_json():
+    """
+    Test whether the function 'convert_warehouse_credentials'
+    returns a valid JSON string representing the warehouse
+    credentials when valid input credentials
+    (hostname, port, schema, user, and password) are provided.
+    """
+
     example = '{"hostname": "banana", "port": "1234", "schema": "example'
     example += 'schema", "user": "exampleuser", "password": "examplepassword"}'
 
@@ -42,6 +55,12 @@ def test_convert_warehouse_credentials_returns_valid_json():
 
 
 def test_convert_ingestion_credentials_raises_Error_on_null_credential():
+    """
+    Test whether the function 'convert_ingestion_credentials' raises a
+    'NullCredentialsError' when any of the credential parameters
+    (hostname, port, db, username, or password) is passed as None.
+    """
+
     with pytest.raises(converter.NullCredentialsError):
         converter.convert_ingestion_credentials(
             None, "port", "db", "username", "password"
@@ -69,6 +88,13 @@ def test_convert_ingestion_credentials_raises_Error_on_null_credential():
 
 
 def test_convert_ingestion_warehouse_returns_valid_json():
+    """
+    Test whether the function 'convert_ingestion_credentials'
+    returns a valid JSON string representing the ingestion
+    credentials when valid input credentials
+    (hostname, port, db, username, and password) are provided.
+    """
+
     example = '{"hostname": "examplehostname", "port": "1234", '
     example += '"db": "exampledb", "username": "exampleusername", '
     example += '"password": "examplepassword"}'

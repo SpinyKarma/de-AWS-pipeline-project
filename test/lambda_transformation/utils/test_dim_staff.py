@@ -46,17 +46,36 @@ expected_dim_staff_dict = {
 
 
 def test_timestamp_is_preserved():
+    """
+    Test whether the 'Timestamp' value in the output dictionary is preserved
+    correctly when converting staff and department data to 'dim_staff'.
+    """
+
     output = sdtds(fake_staff_dict, fake_department_dict)
     assert output['Key'].split("/")[0] == timestamp
     assert output['Timestamp'] == timestamp
 
 
 def test_body_is_a_pd_dataframe():
+    """
+    Test whether the 'Body' value in the output dictionary is
+    a Pandas DataFrame when converting staff and department
+    data to 'dim_staff'.
+    """
+
     output = sdtds(fake_staff_dict, fake_department_dict)
     assert type(output['Body']) is DataFrame
 
 
 def test_body_is_as_expected():
+    """
+    Test whether the 'Body' value in the output dictionary matches
+    the expected DataFrame when converting staff and department
+    data to 'dim_staff'. The test checks if the columns and
+    corresponding data in the output and expected DataFrames
+    are identical.
+    """
+
     output = sdtds(fake_staff_dict, fake_department_dict)['Body']
     expected = expected_dim_staff_dict['Body']
     out_cols = output.columns

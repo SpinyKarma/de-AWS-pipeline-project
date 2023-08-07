@@ -20,11 +20,6 @@ def counter_party_address_to_dim_counterparty(counterparty_dict, address_dict):
             "Body": a pandas dataframe of the dim_counterparty contents.
     '''
 
-    # timestamp = [counterparty_dict['Timestamp'], address_dict['Timestamp']]
-    # timestamp.sort(reverse=True)
-    # timestamp = timestamp[0]
-    # isoformat_timestamp = timestamp.isoformat()
-
     key = address_dict['Key']
     address = address_dict['Body']
     counterparty = counterparty_dict['Body']
@@ -63,8 +58,6 @@ def counter_party_address_to_dim_counterparty(counterparty_dict, address_dict):
         inplace=True
     )
 
-    # dim_counterparty = dim_counterparty.where(
-    #     pd.notnull(dim_counterparty), None)
     # concatenate the key with the dim_counterparty
     new_key = key.split('/')[0]+"/dim_counterparty.csv"
     # new_key=f'{isoformat_timestamp}/dim_counterparty.csv'
