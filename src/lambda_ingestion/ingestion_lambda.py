@@ -269,11 +269,3 @@ def csv_to_s3(Bucket, updated_table_list):
             Key=key,
             ContentType='application/text'
         )
-
-
-# if __name__ == "__main__":
-#     with connect() as db:
-#         res = db.run(
-#             "SELECT * FROM sales_order ORDER BY sales_order_id ASC LIMIT 1;"
-#         )
-#         pprint(res)

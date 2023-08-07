@@ -1,6 +1,4 @@
 import pandas as pd
-import io
-from datetime import datetime as dt
 
 
 def counter_party_address_to_dim_counterparty(counterparty_dict, address_dict):
