@@ -1,5 +1,4 @@
 import pandas as pd
-from datetime import datetime as dt
 
 
 def generate_dim_date():
@@ -29,8 +28,3 @@ def generate_dim_date():
     # so no timestamp on key
     dim_date_dict = {"Key": "dim_date.csv", "Body": dates}
     return dim_date_dict
-
-
-if __name__ == "__main__":
-    out = generate_dim_date()
-    print(out["Body"])
