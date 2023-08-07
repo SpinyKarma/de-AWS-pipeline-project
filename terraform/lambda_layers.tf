@@ -16,7 +16,9 @@ resource "aws_s3_object" "lambda_layer_code" {
   source      = data.archive_file.lambda_layer_zip.output_path
   source_hash = data.archive_file.lambda_layer_zip.output_base64sha256
   tags = {
-    Project = "Northcoders-AWS-ETL-pipeline"
+    Repo       = "https://github.com/SpinyKarma/de-AWS-pipeline-project"
+    Managed_by = "Terraform"
+    Project    = "Northcoders-AWS-ETL-pipeline"
   }
 }
 
@@ -47,7 +49,9 @@ resource "aws_s3_object" "lambda_layer_code_2" {
   source      = data.archive_file.lambda_layer_zip_2.output_path
   source_hash = data.archive_file.lambda_layer_zip_2.output_base64sha256
   tags = {
-    Project = "Northcoders-AWS-ETL-pipeline"
+    Repo       = "https://github.com/SpinyKarma/de-AWS-pipeline-project"
+    Managed_by = "Terraform"
+    Project    = "Northcoders-AWS-ETL-pipeline"
   }
 }
 

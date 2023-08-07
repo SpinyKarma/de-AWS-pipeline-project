@@ -24,8 +24,10 @@ resource "aws_iam_role" "loading_lambda_role" {
     }
     EOF
   tags = {
-    Project = "Northcoders-AWS-ETL-pipeline"
-    Lambda  = "Loading"
+    Repo       = "https://github.com/SpinyKarma/de-AWS-pipeline-project"
+    Managed_by = "Terraform"
+    Project    = "Northcoders-AWS-ETL-pipeline"
+    Lambda     = "Loading"
   }
 }
 
@@ -63,8 +65,10 @@ resource "aws_iam_role_policy_attachment" "loading_sns_publish_policy_attachment
 resource "aws_cloudwatch_log_group" "loading_log_group" {
   name = "/aws/lambda/${aws_lambda_function.loading_lambda.function_name}"
   tags = {
-    Project = "Northcoders-AWS-ETL-pipeline"
-    Lambda  = "Loading"
+    Repo       = "https://github.com/SpinyKarma/de-AWS-pipeline-project"
+    Managed_by = "Terraform"
+    Project    = "Northcoders-AWS-ETL-pipeline"
+    Lambda     = "Loading"
   }
 }
 
@@ -87,8 +91,10 @@ resource "aws_s3_object" "loading_lambda_code" {
   source      = data.archive_file.loading_lambda_zip.output_path
   source_hash = data.archive_file.loading_lambda_zip.output_base64sha256
   tags = {
-    Project = "Northcoders-AWS-ETL-pipeline"
-    Lambda  = "Loading"
+    Repo       = "https://github.com/SpinyKarma/de-AWS-pipeline-project"
+    Managed_by = "Terraform"
+    Project    = "Northcoders-AWS-ETL-pipeline"
+    Lambda     = "Loading"
   }
 }
 
@@ -103,8 +109,10 @@ resource "aws_lambda_function" "loading_lambda" {
   source_code_hash = data.archive_file.loading_lambda_zip.output_base64sha256
   layers           = [aws_lambda_layer_version.lambda_requirements_layer_2.arn]
   tags = {
-    Project = "Northcoders-AWS-ETL-pipeline"
-    Lambda  = "Loading"
+    Repo       = "https://github.com/SpinyKarma/de-AWS-pipeline-project"
+    Managed_by = "Terraform"
+    Project    = "Northcoders-AWS-ETL-pipeline"
+    Lambda     = "Loading"
   }
 }
 
@@ -163,8 +171,10 @@ resource "aws_cloudwatch_metric_alarm" "loading_missing_bucket_error_alarm" {
   threshold           = "1"
   alarm_actions       = [aws_sns_topic.notification_topic.arn]
   tags = {
-    Project = "Northcoders-AWS-ETL-pipeline"
-    Lambda  = "Loading"
+    Repo       = "https://github.com/SpinyKarma/de-AWS-pipeline-project"
+    Managed_by = "Terraform"
+    Project    = "Northcoders-AWS-ETL-pipeline"
+    Lambda     = "Loading"
   }
 }
 

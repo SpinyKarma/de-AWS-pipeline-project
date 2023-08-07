@@ -24,8 +24,10 @@ resource "aws_iam_role" "transformation_lambda_role" {
     }
     EOF
   tags = {
-    Project = "Northcoders-AWS-ETL-pipeline"
-    Lambda  = "Transformation"
+    Repo       = "https://github.com/SpinyKarma/de-AWS-pipeline-project"
+    Managed_by = "Terraform"
+    Project    = "Northcoders-AWS-ETL-pipeline"
+    Lambda     = "Transformation"
   }
 }
 
@@ -58,8 +60,10 @@ resource "aws_iam_role_policy_attachment" "transformation_sns_publish_policy_att
 resource "aws_cloudwatch_log_group" "transformation_log_group" {
   name = "/aws/lambda/${aws_lambda_function.transformation_lambda.function_name}"
   tags = {
-    Project = "Northcoders-AWS-ETL-pipeline"
-    Lambda  = "Transformation"
+    Repo       = "https://github.com/SpinyKarma/de-AWS-pipeline-project"
+    Managed_by = "Terraform"
+    Project    = "Northcoders-AWS-ETL-pipeline"
+    Lambda     = "Transformation"
   }
 }
 
@@ -82,8 +86,10 @@ resource "aws_s3_object" "transformation_lambda_code" {
   source      = data.archive_file.transformation_lambda_zip.output_path
   source_hash = data.archive_file.transformation_lambda_zip.output_base64sha256
   tags = {
-    Project = "Northcoders-AWS-ETL-pipeline"
-    Lambda  = "Transformation"
+    Repo       = "https://github.com/SpinyKarma/de-AWS-pipeline-project"
+    Managed_by = "Terraform"
+    Project    = "Northcoders-AWS-ETL-pipeline"
+    Lambda     = "Transformation"
   }
 }
 
@@ -98,8 +104,10 @@ resource "aws_lambda_function" "transformation_lambda" {
   source_code_hash = data.archive_file.transformation_lambda_zip.output_base64sha256
   layers           = [aws_lambda_layer_version.lambda_requirements_layer.arn]
   tags = {
-    Project = "Northcoders-AWS-ETL-pipeline"
-    Lambda  = "Transformation"
+    Repo       = "https://github.com/SpinyKarma/de-AWS-pipeline-project"
+    Managed_by = "Terraform"
+    Project    = "Northcoders-AWS-ETL-pipeline"
+    Lambda     = "Transformation"
   }
 }
 
@@ -158,8 +166,10 @@ resource "aws_cloudwatch_metric_alarm" "transformation_missing_bucket_error_alar
   threshold           = "1"
   alarm_actions       = [aws_sns_topic.notification_topic.arn]
   tags = {
-    Project = "Northcoders-AWS-ETL-pipeline"
-    Lambda  = "Transformation"
+    Repo       = "https://github.com/SpinyKarma/de-AWS-pipeline-project"
+    Managed_by = "Terraform"
+    Project    = "Northcoders-AWS-ETL-pipeline"
+    Lambda     = "Transformation"
   }
 }
 

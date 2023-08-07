@@ -1,7 +1,9 @@
 resource "aws_sns_topic" "notification_topic" {
   name = "error_notification"
   tags = {
-    Project = "Northcoders-AWS-ETL-pipeline"
+    Repo       = "https://github.com/SpinyKarma/de-AWS-pipeline-project"
+    Managed_by = "Terraform"
+    Project    = "Northcoders-AWS-ETL-pipeline"
   }
 }
 
