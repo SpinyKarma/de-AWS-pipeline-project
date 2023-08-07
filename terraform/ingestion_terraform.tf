@@ -24,8 +24,10 @@ resource "aws_iam_role" "ingestion_lambda_role" {
     }
     EOF
   tags = {
-    Project = "Northcoders-AWS-ETL-pipeline"
-    Lambda = "Ingestion"
+    Repo       = "https://github.com/SpinyKarma/de-AWS-pipeline-project"
+    Managed_by = "Terraform"
+    Project    = "Northcoders-AWS-ETL-pipeline"
+    Lambda     = "Ingestion"
   }
 }
 
@@ -64,8 +66,10 @@ resource "aws_iam_role_policy_attachment" "ingestion_sns_publish_policy_attachme
 resource "aws_cloudwatch_log_group" "ingestion_log_group" {
   name = "/aws/lambda/${aws_lambda_function.ingestion_lambda.function_name}"
   tags = {
-    Project = "Northcoders-AWS-ETL-pipeline"
-    Lambda = "Ingestion"
+    Repo       = "https://github.com/SpinyKarma/de-AWS-pipeline-project"
+    Managed_by = "Terraform"
+    Project    = "Northcoders-AWS-ETL-pipeline"
+    Lambda     = "Ingestion"
   }
 }
 
@@ -88,8 +92,10 @@ resource "aws_s3_object" "ingestion_lambda_code" {
   source      = data.archive_file.ingestion_lambda_zip.output_path
   source_hash = data.archive_file.ingestion_lambda_zip.output_base64sha256
   tags = {
-    Project = "Northcoders-AWS-ETL-pipeline"
-    Lambda = "Ingestion"
+    Repo       = "https://github.com/SpinyKarma/de-AWS-pipeline-project"
+    Managed_by = "Terraform"
+    Project    = "Northcoders-AWS-ETL-pipeline"
+    Lambda     = "Ingestion"
   }
 }
 
@@ -104,8 +110,10 @@ resource "aws_lambda_function" "ingestion_lambda" {
   source_code_hash = data.archive_file.ingestion_lambda_zip.output_base64sha256
   layers           = [aws_lambda_layer_version.lambda_requirements_layer.arn]
   tags = {
-    Project = "Northcoders-AWS-ETL-pipeline"
-    Lambda = "Ingestion"
+    Repo       = "https://github.com/SpinyKarma/de-AWS-pipeline-project"
+    Managed_by = "Terraform"
+    Project    = "Northcoders-AWS-ETL-pipeline"
+    Lambda     = "Ingestion"
   }
 }
 
@@ -120,8 +128,10 @@ resource "aws_cloudwatch_event_rule" "ingestion_lambda_rule" {
   schedule_expression = "rate(3 minutes)"
   is_enabled          = true
   tags = {
-    Project = "Northcoders-AWS-ETL-pipeline"
-    Lambda = "Ingestion"
+    Repo       = "https://github.com/SpinyKarma/de-AWS-pipeline-project"
+    Managed_by = "Terraform"
+    Project    = "Northcoders-AWS-ETL-pipeline"
+    Lambda     = "Ingestion"
   }
 }
 
@@ -168,8 +178,10 @@ resource "aws_cloudwatch_metric_alarm" "table_ingestion_error_alarm" {
   threshold           = "1"
   alarm_actions       = [aws_sns_topic.notification_topic.arn]
   tags = {
-    Project = "Northcoders-AWS-ETL-pipeline"
-    Lambda = "Ingestion"
+    Repo       = "https://github.com/SpinyKarma/de-AWS-pipeline-project"
+    Managed_by = "Terraform"
+    Project    = "Northcoders-AWS-ETL-pipeline"
+    Lambda     = "Ingestion"
   }
 }
 
@@ -196,8 +208,10 @@ resource "aws_cloudwatch_metric_alarm" "invalid_credentials_error_alarm" {
   threshold           = "1"
   alarm_actions       = [aws_sns_topic.notification_topic.arn]
   tags = {
-    Project = "Northcoders-AWS-ETL-pipeline"
-    Lambda = "Ingestion"
+    Repo       = "https://github.com/SpinyKarma/de-AWS-pipeline-project"
+    Managed_by = "Terraform"
+    Project    = "Northcoders-AWS-ETL-pipeline"
+    Lambda     = "Ingestion"
   }
 }
 
@@ -224,8 +238,10 @@ resource "aws_cloudwatch_metric_alarm" "no_timestamp_error_alarm" {
   threshold           = "1"
   alarm_actions       = [aws_sns_topic.notification_topic.arn]
   tags = {
-    Project = "Northcoders-AWS-ETL-pipeline"
-    Lambda = "Ingestion"
+    Repo       = "https://github.com/SpinyKarma/de-AWS-pipeline-project"
+    Managed_by = "Terraform"
+    Project    = "Northcoders-AWS-ETL-pipeline"
+    Lambda     = "Ingestion"
   }
 }
 
@@ -253,8 +269,10 @@ resource "aws_cloudwatch_metric_alarm" "exception_error_alarm" {
   threshold           = "1"
   alarm_actions       = [aws_sns_topic.notification_topic.arn]
   tags = {
-    Project = "Northcoders-AWS-ETL-pipeline"
-    Lambda = "Ingestion"
+    Repo       = "https://github.com/SpinyKarma/de-AWS-pipeline-project"
+    Managed_by = "Terraform"
+    Project    = "Northcoders-AWS-ETL-pipeline"
+    Lambda     = "Ingestion"
   }
 }
 

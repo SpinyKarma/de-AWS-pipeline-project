@@ -24,8 +24,10 @@ resource "aws_iam_role" "transformation_stage_2_lambda_role" {
     }
     EOF
   tags = {
-    Project = "Northcoders-AWS-ETL-pipeline"
-    Lambda  = "Transformation-stage-2"
+    Repo       = "https://github.com/SpinyKarma/de-AWS-pipeline-project"
+    Managed_by = "Terraform"
+    Project    = "Northcoders-AWS-ETL-pipeline"
+    Lambda     = "Transformation-stage-2"
   }
 }
 
@@ -58,8 +60,10 @@ resource "aws_iam_role_policy_attachment" "transformation_stage_2_sns_publish_po
 resource "aws_cloudwatch_log_group" "transformation_stage_2_log_group" {
   name = "/aws/lambda/${aws_lambda_function.transformation_stage_2_lambda.function_name}"
   tags = {
-    Project = "Northcoders-AWS-ETL-pipeline"
-    Lambda  = "Transformation-stage-2"
+    Repo       = "https://github.com/SpinyKarma/de-AWS-pipeline-project"
+    Managed_by = "Terraform"
+    Project    = "Northcoders-AWS-ETL-pipeline"
+    Lambda     = "Transformation-stage-2"
   }
 }
 
@@ -82,8 +86,10 @@ resource "aws_s3_object" "transformation_stage_2_lambda_code" {
   source      = data.archive_file.transformation_stage_2_lambda_zip.output_path
   source_hash = data.archive_file.transformation_stage_2_lambda_zip.output_base64sha256
   tags = {
-    Project = "Northcoders-AWS-ETL-pipeline"
-    Lambda  = "Transformation-stage-2"
+    Repo       = "https://github.com/SpinyKarma/de-AWS-pipeline-project"
+    Managed_by = "Terraform"
+    Project    = "Northcoders-AWS-ETL-pipeline"
+    Lambda     = "Transformation-stage-2"
   }
 }
 
@@ -98,8 +104,10 @@ resource "aws_lambda_function" "transformation_stage_2_lambda" {
   source_code_hash = data.archive_file.transformation_stage_2_lambda_zip.output_base64sha256
   layers           = [aws_lambda_layer_version.lambda_requirements_layer_2.arn]
   tags = {
-    Project = "Northcoders-AWS-ETL-pipeline"
-    Lambda  = "Transformation-stage-2"
+    Repo       = "https://github.com/SpinyKarma/de-AWS-pipeline-project"
+    Managed_by = "Terraform"
+    Project    = "Northcoders-AWS-ETL-pipeline"
+    Lambda     = "Transformation-stage-2"
   }
 }
 
@@ -157,7 +165,9 @@ resource "aws_lambda_permission" "transformation_stage_2_lambda_event" {
 #   threshold           = "1"
 #   alarm_actions       = [aws_sns_topic.notification_topic.arn]
 #   tags = {
-#     Project = "Northcoders-AWS-ETL-pipeline"
-#     Lambda  = "Transformation-stage-2"
+#     Repo       = "https://github.com/SpinyKarma/de-AWS-pipeline-project"
+#     Managed_by = "Terraform"
+#     Project    = "Northcoders-AWS-ETL-pipeline"
+#     Lambda     = "Transformation-stage-2"
 #   }
 # }

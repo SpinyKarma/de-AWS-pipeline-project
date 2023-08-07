@@ -1,7 +1,9 @@
 resource "aws_secretsmanager_secret" "ingestion_secret" {
   name = "Ingestion_credentials"
   tags = {
-    Project = "Northcoders-AWS-ETL-pipeline"
+    Repo       = "https://github.com/SpinyKarma/de-AWS-pipeline-project"
+    Managed_by = "Terraform"
+    Project    = "Northcoders-AWS-ETL-pipeline"
   }
 }
 
@@ -25,7 +27,9 @@ import {
 resource "aws_secretsmanager_secret" "warehouse_secret" {
   name = "Warehouse_credentials"
   tags = {
-    Project = "Northcoders-AWS-ETL-pipeline"
+    Repo       = "https://github.com/SpinyKarma/de-AWS-pipeline-project"
+    Managed_by = "Terraform"
+    Project    = "Northcoders-AWS-ETL-pipeline"
   }
 }
 
