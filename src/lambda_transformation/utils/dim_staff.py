@@ -30,9 +30,9 @@ def staff_department_to_dim_staff(staff_dict, department_dict):
         'staff_id',
         'first_name',
         'last_name',
-        'email_address',
         'department_name',
         'location',
+        'email_address',
     ]]
     return {'Key': f'{timestamp}/dim_staff.csv',
             'Body': dim_staff,
