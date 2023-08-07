@@ -1,13 +1,10 @@
 import pytest
 import pandas as pd
 import src.lambda_transformation.utils.dim_fact_sales_order as dim_sales
-import src.lambda_transformation.utils.get_tables as tables
 
 
 def test_sales_order_to_fact_sales_order():
-    '''
-        Test to see if the function works as intended.
-    '''
+    '''Test to see if the function works as intended.'''
     sales_order_dict = {
         'Key': 'sales_order.csv',
         'Body': pd.DataFrame({
@@ -34,9 +31,7 @@ def test_sales_order_to_fact_sales_order():
 
 
 def test_sales_order_to_fact_sales_order_missing_columns():
-    '''
-        Test to see if it raises KeyError if missing required Body values.
-    '''
+    '''Test to see if it raises KeyError if missing required Body values.'''
     sales_order_dict = {
         'Key': 'sales_order.csv',
         'Body': pd.DataFrame({
@@ -59,9 +54,7 @@ def test_sales_order_to_fact_sales_order_missing_columns():
 
 
 def test_sales_order_to_fact_sales_order_empty_dataframe():
-    '''
-        Tests to see key error is raised if ran with empty dataframe.
-    '''
+    '''Tests to see key error is raised if ran with empty dataframe.'''
     sales_order_dict = {
         'Key': 'sales_order.csv',
         'Body': pd.DataFrame()
@@ -69,9 +62,3 @@ def test_sales_order_to_fact_sales_order_empty_dataframe():
 
     with pytest.raises(KeyError):
         dim_sales.sales_order_to_fact_sales_order(sales_order_dict)
-
-
-if __name__ == '__main__':
-    sales_data = tables.read_table('sales_order.csv')
-    result = dim_sales.sales_order_to_fact_sales_order(sales_data)
-    print(result)

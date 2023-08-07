@@ -9,8 +9,8 @@ from src.lambda_ingestion.ingestion_lambda import (
     NonTimestampedCSVError
 )
 from unittest.mock import Mock, patch
-# from pprint import pprint
-# function returning a sample csv string for testing
+
+# Function returning a sample csv string for testing
 current_timestamp = dt.now().isoformat()
 
 
@@ -25,7 +25,7 @@ def generate_csv_string(timestamp=current_timestamp):
 
 @mock_s3
 def test_returns_1970_1_1_when_no_objects_in_bucket():
-    # create s3 bucket
+    # Create s3 bucket
     s3_client = boto3.client('s3', region_name='us-east-1')
     s3_client.create_bucket(Bucket="test")
     output = get_last_ingestion_timestamp("test")
@@ -34,14 +34,14 @@ def test_returns_1970_1_1_when_no_objects_in_bucket():
 
 @mock_s3
 def test_gets_most_recent_timestamp_from_all_file_names():
-    # create s3 bucket
+    # Create s3 bucket
     s3_client = boto3.client('s3', region_name='us-east-1')
     s3_client.create_bucket(Bucket="test")
     timestamp_1 = dt(1970, 1, 1).isoformat()
     timestamp_2 = dt(1980, 1, 2).isoformat()
     timestamp_3 = dt(1980, 3, 1).isoformat()
     timestamp_4 = dt(1980, 1, 1).isoformat()
-    # put fake files in bucket
+    # Put fake files in bucket
     s3_client.put_object(
         Body="",
         Bucket="test",
@@ -72,7 +72,7 @@ def test_gets_most_recent_timestamp_from_all_file_names():
 
 @mock_s3
 def test_raises_NonTimeStampedCSVError_when_file_without_timestamp_exists():
-    # create s3 bucket
+    # Create s3 bucket
     s3_client = boto3.client('s3', region_name='us-east-1')
     s3_client.create_bucket(Bucket="test")
     s3_client.put_object(

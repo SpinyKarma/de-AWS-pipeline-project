@@ -27,9 +27,10 @@ def loading_lambda_handler(event, context):
     # Create a list of timestamp folders that exist in the parquet bucket
     parquet_timestamps = list_timestamps(s3_boto, parquet_bucket)
 
-    # If the cache.txt file does not exist, then create one
-    # If it does exist then read it in as a list of timestamps that have been
-    # inserted into the table already
+    ''' If the cache.txt file does not exist, then create one
+    If it does exist then read it in as a list of timestamps that have been
+    inserted into the table already
+    '''
     try:
         cache_txt = s3_boto.get_object(
             Bucket=parquet_bucket,
@@ -43,17 +44,19 @@ def loading_lambda_handler(event, context):
         s3_boto.put_object(Bucket=parquet_bucket, Key='cache.txt', Body='')
         cache_txt = []
 
-    # Compare the cache list with the timestamps that exist in the bucket,
-    # the difference between these lists defines the timestamps that have yet
-    # to be processed
+    ''' Compare the cache list with the timestamps that exist in the bucket,
+    the difference between these lists defines the timestamps that have yet
+    to be processed
+    '''
     diff_list = [item for item in parquet_timestamps if item not in cache_txt]
     if diff_list == []:
         logging.info("No new data to insert into warehouse.")
     # Define a pyarrow s3 client
     s3_py = fs.S3FileSystem(region='eu-west-2')
 
-    # Check if the dim_date has been populated, if not then populate
-    # This happens here as dim_date is generated rather than transfered
+    '''Check if the dim_date has been populated, if not then populate
+    This happens here as dim_date is generated rather than transfered
+    '''
     with connect() as db:
         res = db.run("SELECT * FROM dim_date LIMIT 1;")
         if res == []:
@@ -161,9 +164,10 @@ def insert_data(s3_py, file):
         # Query to see what data exists in the table already
         res = db.run(f'SELECT * FROM {pg.identifier(table)};')
 
-        # Creates a list of primary keys that exist in the table,
-        # fact_sales_order has its pk inserted into the second column so this
-        # needs to be accounted for
+        '''Creates a list of primary keys that exist in the table,
+        fact_sales_order has its pk inserted into the second column so this
+        needs to be accounted for
+        '''
         if table == "fact_sales_order":
             pk = [row[1] for row in res]
         else:
@@ -246,29 +250,3 @@ class MissingBucketError(Exception):
     def __init__(self, source="", message=""):
         self.source = source
         self.message = message
-
-
-# if __name__ == "__main__":
-#     s3_boto = boto3.client('s3', region_name='eu-west-2')
-#     parquet_bucket = get_parquet_bucket_name()
-#     try:
-#         cache_txt = s3_boto.get_object(
-#             Bucket=parquet_bucket,
-#             Key='cache.txt'
-#         )['Body'].read().decode('utf-8').split("\n")
-#         if cache_txt == [""]:
-#             cache_txt = []
-#     except s3_boto.exceptions.NoSuchKey:
-#         # s3_boto.put_object(Bucket=parquet_bucket, Key='cache.txt', Body='')
-#         cache_txt = []
-#     print(cache_txt)
-#     with connect() as db:
-#         select_query = "SELECT * FROM fact_sales_order ORDER BY"
-#         select_query += " sales_order_id ASC LIMIT 1;"
-
-#         res = db.run(select_query)
-#         print(res)
-
-#         res = db.run(
-#             "DELETE FROM fact_sales_order;")
-#         print(res)

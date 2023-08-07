@@ -1,9 +1,11 @@
 from src.lambda_transformation.utils.dim_date import generate_dim_date as gdd
 from datetime import datetime as dt
-import pandas as pd
 
 
 def test_output_has_required_columns():
+    """ Test whether the output DataFrame of the 'generate_dim_date' function
+        contains all the required columns.
+    """
     output = gdd()
     output_cols = list(output['Body'].columns)
     expected_dim_date_cols = [
@@ -20,6 +22,10 @@ def test_output_has_required_columns():
 
 
 def test_first_and_last_two_rows_have_proper_output_assume_rest_follow_suit():
+    """ Test whether the first two rows and the last two rows of the output
+        DataFrame of the 'generate_dim_date' function contain the expected
+        values, and assume the rest of the rows follow suit.
+    """
     output = gdd()['Body']
     output_row_0 = output.loc[0, :].values.flatten().tolist()
     output_row_1 = output.loc[1, :].values.flatten().tolist()

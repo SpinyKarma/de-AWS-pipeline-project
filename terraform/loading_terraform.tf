@@ -1,6 +1,7 @@
-###################################################
-####  LOADING LAMBDA POLICIES AND ROLES ####
-###################################################
+######################################################
+####  LOADING LAMBDA ROLE AND POLICY ATTACHMENTS  ####
+######################################################
+
 
 resource "aws_iam_role" "loading_lambda_role" {
   name_prefix        = "role-loading-"
@@ -22,6 +23,12 @@ resource "aws_iam_role" "loading_lambda_role" {
         ]
     }
     EOF
+  tags = {
+    Repo       = "https://github.com/SpinyKarma/de-AWS-pipeline-project"
+    Managed_by = "Terraform"
+    Project    = "Northcoders-AWS-ETL-pipeline"
+    Lambda     = "Loading"
+  }
 }
 
 resource "aws_iam_role_policy_attachment" "loading_s3_write_policy_attachment" {
@@ -50,18 +57,25 @@ resource "aws_iam_role_policy_attachment" "loading_sns_publish_policy_attachment
 }
 
 
-######################
-####  LOG GROUP   ####
-######################
+#############################
+####  LOADING LOG GROUP  ####
+#############################
+
 
 resource "aws_cloudwatch_log_group" "loading_log_group" {
   name = "/aws/lambda/${aws_lambda_function.loading_lambda.function_name}"
+  tags = {
+    Repo       = "https://github.com/SpinyKarma/de-AWS-pipeline-project"
+    Managed_by = "Terraform"
+    Project    = "Northcoders-AWS-ETL-pipeline"
+    Lambda     = "Loading"
+  }
 }
 
 
-#################################
+##########################
 ####  LOADING LAMBDA  ####
-#################################
+##########################
 
 
 data "archive_file" "loading_lambda_zip" {
@@ -76,6 +90,12 @@ resource "aws_s3_object" "loading_lambda_code" {
   acl         = "private"
   source      = data.archive_file.loading_lambda_zip.output_path
   source_hash = data.archive_file.loading_lambda_zip.output_base64sha256
+  tags = {
+    Repo       = "https://github.com/SpinyKarma/de-AWS-pipeline-project"
+    Managed_by = "Terraform"
+    Project    = "Northcoders-AWS-ETL-pipeline"
+    Lambda     = "Loading"
+  }
 }
 
 resource "aws_lambda_function" "loading_lambda" {
@@ -88,11 +108,19 @@ resource "aws_lambda_function" "loading_lambda" {
   timeout          = "60"
   source_code_hash = data.archive_file.loading_lambda_zip.output_base64sha256
   layers           = [aws_lambda_layer_version.lambda_requirements_layer_2.arn]
+  tags = {
+    Repo       = "https://github.com/SpinyKarma/de-AWS-pipeline-project"
+    Managed_by = "Terraform"
+    Project    = "Northcoders-AWS-ETL-pipeline"
+    Lambda     = "Loading"
+  }
 }
 
-#########################
-###  LOADING TRIGGER  ###
-#########################
+
+###########################
+####  LOADING TRIGGER  ####
+###########################
+
 
 resource "aws_lambda_function_event_invoke_config" "loading_trigger" {
   function_name = aws_lambda_function.transformation_stage_2_lambda.function_name
@@ -114,9 +142,11 @@ resource "aws_lambda_permission" "loading_lambda_event" {
   source_arn    = aws_lambda_function.transformation_stage_2_lambda.arn
 }
 
-#############################
-####  ALARM AND METRICS  ####
-#############################
+
+##############################
+####  ALARMS AND METRICS  ####
+##############################
+
 
 resource "aws_cloudwatch_log_metric_filter" "loading_missing_bucket_error_metric" {
   name           = "metric_name"
@@ -140,5 +170,11 @@ resource "aws_cloudwatch_metric_alarm" "loading_missing_bucket_error_alarm" {
   statistic           = "Sum"
   threshold           = "1"
   alarm_actions       = [aws_sns_topic.notification_topic.arn]
+  tags = {
+    Repo       = "https://github.com/SpinyKarma/de-AWS-pipeline-project"
+    Managed_by = "Terraform"
+    Project    = "Northcoders-AWS-ETL-pipeline"
+    Lambda     = "Loading"
+  }
 }
 

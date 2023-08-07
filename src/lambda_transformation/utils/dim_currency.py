@@ -3,7 +3,7 @@ import pandas as pd
 
 
 def currency_to_dim_currency(currency_dict):
-    '''Takes all currencies from currency csv and remaps to dim_currency schema.
+    '''Takes currencies from currency csv and remaps to dim_currency schema.
 
     Args:
         currency_dict: a dict with two key/val pairs:
@@ -29,7 +29,7 @@ def currency_to_dim_currency(currency_dict):
 
     dim_currency = currency[['currency_id',
                              'currency_code']].copy()
-    
+
     dim_currency['currency_name'] = currency_names
     dim_currency_df = pd.DataFrame(dim_currency)
     new_key = key.split('/')[0]+'/dim_currency.csv'

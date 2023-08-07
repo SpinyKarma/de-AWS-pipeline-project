@@ -1,5 +1,6 @@
 import pandas as pd
 
+
 def design_to_dim_design(design_dict):
     '''Takes all designs from design csv and remaps to dim_design schema.
 
@@ -25,4 +26,3 @@ def design_to_dim_design(design_dict):
     # make dict of key and body then return it
     dim_design_dict = {'Key': new_key, 'Body': dim_design_df}
     return dim_design_dict
- 

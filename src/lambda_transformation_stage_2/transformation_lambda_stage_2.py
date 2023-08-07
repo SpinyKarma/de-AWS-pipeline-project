@@ -117,23 +117,3 @@ def get_parquet_bucket_name():
         "parquet_bucket",
         "The processed data bucket was not found"
     )
-
-
-# if __name__ == "__main__":
-#     # transformation_lambda_handler_stage_2("banana", "apple")
-#     s3 = fs.S3FileSystem(region='eu-west-2')
-#     parquet_bucket = get_parquet_bucket_name()
-#     bucket_contents = s3.get_file_info(fs.FileSelector(
-#         parquet_bucket, recursive=False))
-#     date_csv_file = [
-#         file for file in bucket_contents if file.extension == "parquet"][0]
-#     read_parquet(s3, date_csv_file)
-#     bucket_csvs = [
-#         file for file in bucket_contents if
-#         file.is_file and file.extension == "csv"]
-#     for file in bucket_csvs:
-#         fh = s3.open_input_stream(file.path)
-#         reader = pv.open_csv(fh)
-#         pq.ParquetWriter(
-#             f"s3://{file.path[:-4]}.parquet", schema=reader.schema)
-#         s3.delete_file(file.path)
