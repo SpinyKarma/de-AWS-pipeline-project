@@ -22,6 +22,7 @@ def design_to_dim_design(design_dict):
                          'file_name']]
 
     dim_design_df = pd.DataFrame(dim_design)
+    # make dict of key and body then return it
     dim_design_dict = {'Key': new_key, 'Body': dim_design_df}
     return dim_design_dict
  
