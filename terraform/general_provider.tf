@@ -42,24 +42,6 @@ variable "sns_error_email" {
   default     = "de.project.banana@gmail.com"
 }
 
-variable "s3_code_bucket_prefix" {
-  description = "The prefix to be used for the s3 bucket used for storing code."
-  type        = string
-  default     = "lambda-code-bucket"
-}
-
-variable "s3_raw_data_bucket_prefix" {
-  description = "The prefix to be used for the s3 bucket used for storing raw csv data."
-  type        = string
-  default     = "terrific-totes-ingestion-bucket"
-}
-
-variable "s3_processed_data_bucket_prefix" {
-  description = "The prefix to be used for the s3 bucket used for storing processed parquet data."
-  type        = string
-  default     = "terrific-totes-processed-bucket"
-}
-
 variable "ingestion_db_credentials" {
   description = "The postgreSQL credentials for the database that data is being drawn from."
   default = {
