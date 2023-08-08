@@ -88,8 +88,9 @@ class NonTimestampedCSVError(Exception):
 
 
 class InvalidCredentialsError (Exception):
-    def __init__(self):
+    def __init__(self, credentials):
         self.message = "There is an issue with the postgres credentials."
+        self.credentials = credentials
 
 
 def get_credentials(secret_name='Ingestion_credentials'):

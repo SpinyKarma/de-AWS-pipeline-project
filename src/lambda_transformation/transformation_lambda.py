@@ -92,7 +92,7 @@ def transformation_lambda_handler(event, context):
 
             # Convert the body and key to parquet format.
             csv_name, csv_body = back_to_csv(csv_dict)
-            
+
             # Save the resulting parquet file to the correct s3 bucket.
             s3.put_object(Bucket=parquet_bucket,
                           Key=csv_name, Body=csv_body)
