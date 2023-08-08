@@ -4,22 +4,21 @@ import json
 import pg8000.native as pg8000
 import csv
 from datetime import datetime as dt
-# from pprint import pprint
+
 
 logger = logging.getLogger('MyLogger')
 logger.setLevel(logging.INFO)
 
 
 def ingestion_lambda_handler(event, context):
-    ''' Will query the ingestion database at regular intervals and save the
+    """ Will query the ingestion database at regular intervals and save the
         results to csvs in an s3 bucket to await processing, using the s3
         prefix system to only query that has been added or updated since the
         last query.
-    '''
+    """
     try:
-        # List of tables to query
-        # will need updating if project is expended to payment and/or
-        # transaction schemas
+
+        # List of tables to query.
         table_names = [
             'address',
             'counterparty',
@@ -30,23 +29,23 @@ def ingestion_lambda_handler(event, context):
             'staff',
         ]
 
-        # The name of th s3 bucket that the csvs will be saved to
+        # The name of th s3 bucket that the csvs will be saved to.
         bucket_name = get_ingestion_bucket_name()
         logger.info(f"Ingestion bucket established as {bucket_name}.")
 
         # Uses the timestamp prefixes in s3 to determine when the most recent
-        # ingestion was
+        # ingestion was.
         last = get_last_ingestion_timestamp(bucket_name)
         logger.info(
             f"Most recent timestamp saved to bucket is {last.isoformat()}"
         )
 
         # Uses the most recent ingestion timestamp to query the database for
-        # recent additions
+        # recent additions.
         csvs_to_update = extract_table_to_csv(table_names, last)
 
         # Writes the returned query data to the s3 bucket in csv form under a
-        # new timestamp prefix
+        # new timestamp prefix.
         csv_to_s3(bucket_name, csvs_to_update)
 
     except TableIngestionError as error:
@@ -54,13 +53,11 @@ def ingestion_lambda_handler(event, context):
         raise error
 
     except InvalidCredentialsError as error:
-        logger.error(f'Invalid Credentials Error: {error}')
+        logger.error(f'Invalid Credentials Error: {error.message}')
         raise error
 
     except NonTimestampedCSVError as error:
-        err_str = 'A CSV is in the bucket without a timestamp, '
-        err_str += f'remove all non-timestamped CSVs: {error}'
-        logger.error(err_str)
+        logger.error(f'Table Ingestion Error: {error.message}')
         raise error
 
     except Exception as error:
@@ -69,7 +66,7 @@ def ingestion_lambda_handler(event, context):
 
 
 def get_ingestion_bucket_name():
-    '''Gets the name of the bucket to store raw data in using the prefix.'''
+    """ Gets the name of the bucket to store raw data in using the prefix."""
     prefix = 'terrific-totes-ingestion-bucket'
     buckets = boto3.client("s3").list_buckets().get("Buckets")
     for bucket in buckets:
@@ -85,18 +82,21 @@ class TableIngestionError(Exception):
 
 
 class NonTimestampedCSVError(Exception):
-    pass
+    def __init__(self):
+        self.message = "A CSV is in the bucket without a timestamp, "
+        self.message += "remove all non-timestamped CSVs"
 
 
 class InvalidCredentialsError (Exception):
-    pass
+    def __init__(self):
+        self.message = "There is an issue with the postgres credentials."
 
 
 def get_credentials(secret_name='Ingestion_credentials'):
-    """Loads a set of DB credentials using a secret stored in AWS secrets.
+    """ Loads a set of DB credentials using a secret stored in AWS secrets.
 
         Args:
-            secet_name: The name of the secret to extract credentials from,
+            secret_name: The name of the secret to extract credentials from,
             defaults to Ingestion_credentials. Also takes Warehouse_credentials
             for establishing a connection to the data warehouse instead.
 
@@ -161,7 +161,7 @@ def connect(db="ingestion"):
 
 
 class CsvBuilder:
-    """For creating CSV without writing to a file."""
+    """ For creating CSV without writing to a file."""
 
     def __init__(self):
         self.rows = []
@@ -174,7 +174,7 @@ class CsvBuilder:
 
 
 def get_last_ingestion_timestamp(Bucket):
-    ''' Extracts the timestamp of the most recently added csv in the passed
+    """ Extracts the timestamp of the most recently added csv in the passed
         bucket.
 
     Args:
@@ -183,7 +183,7 @@ def get_last_ingestion_timestamp(Bucket):
     Returns:
         last_timestamp: The timestamp from the most recently added
         csv, defaults to 1st Jan 1970 if no csvs in file.
-    '''
+    """
     s3_client = boto3.client("s3")
     try:
         res = s3_client.list_objects_v2(Bucket=Bucket)['Contents']
@@ -192,7 +192,6 @@ def get_last_ingestion_timestamp(Bucket):
     names = [item['Key'] for item in res]
     sorted_names = sorted(names, reverse=True)
     last_timestamp = sorted_names[0].split("/")[0]
-    print(last_timestamp)
     try:
         last_timestamp = dt.fromisoformat(last_timestamp)
     except ValueError:
@@ -201,7 +200,7 @@ def get_last_ingestion_timestamp(Bucket):
 
 
 def extract_table_to_csv(table_list, last_timestamp):
-    ''' Runs a query on the given tables filtered by the given timestamp to
+    """ Runs a query on the given tables filtered by the given timestamp to
         return only newly added data.
 
     Args:
@@ -213,7 +212,7 @@ def extract_table_to_csv(table_list, last_timestamp):
     Returns:
         updated_tables: A dict of each table name that had a return from the
         postgres query as keys and the return formatted to a csv as the value.
-    '''
+    """
     updated_tables = {}
     for table_name in table_list:
         f_tablename = pg8000.identifier(table_name)
@@ -245,7 +244,7 @@ def extract_table_to_csv(table_list, last_timestamp):
 
 
 def csv_to_s3(Bucket, updated_table_list):
-    ''' Extracts new csv data from each table and saves to timestamped files in
+    """ Extracts new csv data from each table and saves to timestamped files in
         the bucket.
 
     Args:
@@ -258,8 +257,8 @@ def csv_to_s3(Bucket, updated_table_list):
         None
 
     Side-effects:
-        Uploads the tmiestamped csvs with new data to S3.
-    '''
+        Uploads the timestamped csvs with new data to S3.
+    """
     current_timestamp = dt.now()
     s3_client = boto3.client("s3")
     for table in updated_table_list.keys():
