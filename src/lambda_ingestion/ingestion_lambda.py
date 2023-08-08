@@ -226,7 +226,7 @@ def extract_table_to_csv(table_list, last_timestamp):
             except Exception:
                 raise TableIngestionError(f"Error querying {table_name} table")
             if result == []:
-                logger.info(
+                logger.debug(
                     f"No new data in {table_name} since last ingestion."
                 )
             else:
