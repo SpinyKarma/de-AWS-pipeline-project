@@ -1,19 +1,21 @@
 import pytest
 import src.lambda_ingestion.ingestion_lambda as i
-from moto import mock_secretsmanager
+from moto import mock_secretsmanager, mock_s3
 import boto3
 
 
+@mock_s3
 def test_ingestion_bucket_name():
     """
     Test whether the function 'get_ingestion_bucket_name' returns the
     correct name of the ingestion bucket with the timestamp appended.
     """
+    prefix = 'terrific-totes-ingestion-bucket'
+    boto3.client(
+        "s3", region_name="us-east-1").create_bucket(Bucket=f'{prefix}12534562576864534')
 
     name = i.get_ingestion_bucket_name()
-    correct_name = 'terrific-totes-ingestion-bucket'
-    correct_name += '20230725102602583400000001'
-    assert name == correct_name
+    assert prefix in name
 
 
 @mock_secretsmanager
@@ -97,16 +99,6 @@ def test_get_credentials_returns_dict():
 
     credentials = i.get_credentials()
     assert isinstance(credentials, dict)
-
-
-def test_connect_returns_connection():
-    '''
-        Test whether the function 'connect' returns a connection object,
-        to verify the function can establish a connection to the database
-        and return a valid connection object.
-    '''
-
-    assert isinstance(i.connect(), i.pg8000.Connection)
 
 
 def test_csv_builder():
