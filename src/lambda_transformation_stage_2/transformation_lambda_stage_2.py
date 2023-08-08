@@ -6,6 +6,9 @@ import pyarrow.parquet as pq
 from pyarrow import fs
 # from pprint import pprint
 
+logger = logging.getLogger('MyLogger')
+logger.setLevel(logging.INFO)
+
 
 def transformation_lambda_handler_stage_2(event, context):
     '''Stage 2 of the transformation process.
@@ -19,9 +22,9 @@ def transformation_lambda_handler_stage_2(event, context):
 
     try:
         parquet_bucket = get_parquet_bucket_name()
-        logging.info(f"Processed bucket established as {parquet_bucket}.")
+        logger.info(f"Processed bucket established as {parquet_bucket}.")
     except MissingBucketError as err:
-        logging.critical(f"Missing Bucket Error : {err.message}")
+        logger.critical(f"Missing Bucket Error : {err.message}")
         raise err
 
     bucket_contents = s3.get_file_info(fs.FileSelector(
@@ -61,7 +64,7 @@ def transformation_lambda_handler_stage_2(event, context):
         for file in folder_csvs:
             process_file_to_parquet(s3, file)
     if not files_to_convert:
-        logging.info("No csvs to convert to to parquet.")
+        logger.info("No csvs to convert to to parquet.")
 
 
 class MissingBucketError(Exception):
@@ -78,7 +81,7 @@ def process_file_to_parquet(s3, file):
     reader = pv.open_csv(fh)
     # Convert to parquet and write to the same bucket and folder,
     # changing .csv to .parquet
-    logging.info(f"Writing to {file.base_name[:-4]}.parquet.")
+    logger.info(f"Writing to {file.base_name[:-4]}.parquet.")
     writer = pq.ParquetWriter(
         f"s3://{file.path[:-4]}.parquet",
         schema=reader.schema,
@@ -89,7 +92,7 @@ def process_file_to_parquet(s3, file):
     writer.close()
     reader.close()
     # # Delete the interim csv now that it has been fully processed
-    logging.info(f"Deleting {file.base_name}.")
+    logger.info(f"Deleting {file.base_name}.")
     s3.delete_file(file.path)
 
 

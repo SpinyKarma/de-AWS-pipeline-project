@@ -6,6 +6,9 @@ import pg8000.native as pg
 import json
 # from pprint import pprint
 
+logger = logging.getLogger('MyLogger')
+logger.setLevel(logging.INFO)
+
 
 def loading_lambda_handler(event, context):
     ''' Reads parquet files from an s3 bucket and inserts the data contined
@@ -19,9 +22,9 @@ def loading_lambda_handler(event, context):
     # Ensure that parquet bucket exists
     try:
         parquet_bucket = get_parquet_bucket_name()
-        logging.info(f"Processed bucket established as {parquet_bucket}.")
+        logger.info(f"Processed bucket established as {parquet_bucket}.")
     except MissingBucketError as err:
-        logging.critical(f"Missing Bucket Error : {err.message}")
+        logger.critical(f"Missing Bucket Error : {err.message}")
         raise err
 
     # Create a list of timestamp folders that exist in the parquet bucket
@@ -38,9 +41,9 @@ def loading_lambda_handler(event, context):
         )['Body'].read().decode('utf-8').split("\n")
         if cache_txt == [""]:
             cache_txt = []
-        logging.info("cache.txt found, reading.")
+        logger.info("cache.txt found, reading.")
     except s3_boto.exceptions.NoSuchKey:
-        logging.info("cache.txt not found, creating.")
+        logger.info("cache.txt not found, creating.")
         s3_boto.put_object(Bucket=parquet_bucket, Key='cache.txt', Body='')
         cache_txt = []
 
@@ -50,7 +53,7 @@ def loading_lambda_handler(event, context):
     '''
     diff_list = [item for item in parquet_timestamps if item not in cache_txt]
     if diff_list == []:
-        logging.info("No new data to insert into warehouse.")
+        logger.info("No new data to insert into warehouse.")
     # Define a pyarrow s3 client
     s3_py = fs.S3FileSystem(region='eu-west-2')
 
@@ -60,13 +63,13 @@ def loading_lambda_handler(event, context):
     with connect() as db:
         res = db.run("SELECT * FROM dim_date LIMIT 1;")
         if res == []:
-            logging.info("dim_date not populated in waregouse, populating.")
+            logger.info("dim_date not populated in waregouse, populating.")
             file = s3_py.get_file_info(parquet_bucket+"/dim_date.parquet")
             insert_data(s3_py, file)
 
     # For each timestamp that has yet to be processed:
     for timestamp in diff_list:
-        logging.info(f"Populating with data from {timestamp}.")
+        logger.info(f"Populating with data from {timestamp}.")
         # List all files that belong to this timestamp
         folder_contents = s3_py.get_file_info(
             fs.FileSelector(parquet_bucket + '/' + timestamp, recursive=False)
@@ -81,13 +84,13 @@ def loading_lambda_handler(event, context):
         # Add the timestamp to cache now that all data has been inserted
         log_str = f"All data from {timestamp} inserted into "
         log_str += "warehouse, appending to cache list."
-        logging.info(log_str)
+        logger.info(log_str)
         cache_txt.append(timestamp)
 
     # Write cache to bucket so future calls to lambda don't insert old data
     # over new data
     if diff_list != []:
-        logging.info("Writing out updated cache file.")
+        logger.info("Writing out updated cache file.")
         s3_boto.put_object(
             Bucket=parquet_bucket, Key='cache.txt', Body='\n'.join(cache_txt)
         )
@@ -154,7 +157,7 @@ def insert_data(s3_py, file):
     list_table = read_parquet(s3_py, file)
     # Reads the table name from the file's name
     table = file.base_name[:-8]
-    logging.info(f"Populating {table}.")
+    logger.info(f"Populating {table}.")
     # Separates the column headings from the data
     headers = list_table[0]
     list_table = list_table[1:]
@@ -181,7 +184,7 @@ def insert_data(s3_py, file):
             # If the row's primary key exists in the table: run an update query
             if row[0] in pk:
                 if not logged_update:
-                    logging.info("Running UPDATE queries.")
+                    logger.info("Running UPDATE queries.")
                     logged_update = True
 
                 data = ', '.join(
@@ -198,7 +201,7 @@ def insert_data(s3_py, file):
 
         # If there are rows to insert: build a query string to insert all
         if rows_to_insert != []:
-            logging.info("Compiling all INSERT data into one query.")
+            logger.info("Compiling all INSERT data into one query.")
             # Concatenate the column headings for an INSERT query
             headersstr = ', '.join(
                 [pg.identifier(item) for item in headers]
@@ -214,7 +217,7 @@ def insert_data(s3_py, file):
             # Build the INSERT query
             query = f'INSERT INTO {pg.identifier(table)} ({headersstr}) '
             query += f'VALUES {datastr};'
-            logging.info("Running INSERT query.")
+            logger.info("Running INSERT query.")
             # Run the insert query
             db.run(query)
 

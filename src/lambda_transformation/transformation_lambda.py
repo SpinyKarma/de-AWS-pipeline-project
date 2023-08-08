@@ -17,6 +17,9 @@ from utils.dim_fact_sales_order import (
 from utils.dim_location import address_to_dim_location as atdl
 from utils.dim_staff import staff_department_to_dim_staff as sdtds
 
+logger = logging.getLogger('MyLogger')
+logger.setLevel(logging.INFO)
+
 
 def transformation_lambda_handler(event, context):
     ''' Reads csv files from an s3 bucket, transforms them into the schema of
@@ -40,17 +43,17 @@ def transformation_lambda_handler(event, context):
     # Ensure that our buckets exists
     try:
         raw_bucket = get_ingestion_bucket_name()
-        logging.info(f"Ingestion bucket established as {raw_bucket}.")
+        logger.info(f"Ingestion bucket established as {raw_bucket}.")
         parquet_bucket = get_parquet_bucket_name()
-        logging.info(f"Processed bucket established as {parquet_bucket}.")
+        logger.info(f"Processed bucket established as {parquet_bucket}.")
     except MissingBucketError as err:
-        logging.critical(f"Missing Bucket Error : {err.message}")
+        logger.critical(f"Missing Bucket Error : {err.message}")
         raise err
 
     # Create the dim date parquet file if it does not exist,
     # this happens here as dim date does not need updating once created
     if not dim_date_exists(s3, parquet_bucket):
-        logging.info("dim_date file does not exist, generating it")
+        logger.info("dim_date file does not exist, generating it")
         dim_date = gdd()
         csv_name, csv_body = back_to_csv(dim_date)
         s3.put_object(Bucket=parquet_bucket,
@@ -89,7 +92,7 @@ def transformation_lambda_handler(event, context):
 
         # For each csv that has been through the transformation process:
         if processed_csvs != []:
-            logging.info("Writing processed csvs to processed bucket.")
+            logger.info("Writing processed csvs to processed bucket.")
         for csv_dict in processed_csvs:
             # Convert the body and key to parquet format
             csv_name, csv_body = back_to_csv(csv_dict)
@@ -97,7 +100,7 @@ def transformation_lambda_handler(event, context):
             s3.put_object(Bucket=parquet_bucket,
                           Key=csv_name, Body=csv_body)
     else:
-        logging.info("No new data to process.")
+        logger.info("No new data to process.")
     #     csv_names = get_csv_names(s3)
     #     max_workers = len(csv_names)
 
@@ -238,24 +241,24 @@ def apply_transformations_to_group(s3, csv_group, table_names):
     )
         for key in csv_group if key.split("/")[1] in table_names}
     if process_block.get("address"):
-        logging.info("Creating dim_location.csv.")
+        logger.info("Creating dim_location.csv.")
         output_block["dim_location"] = atdl(process_block['address'])
         if process_block.get("counterparty"):
-            logging.info("Creating dim_location.csv.")
+            logger.info("Creating dim_location.csv.")
             output_block["dim_counterparty"] = cpatdc(
                 process_block['counterparty'], process_block['address'])
     if process_block.get('currency'):
-        logging.info("Creating dim_currency.csv.")
+        logger.info("Creating dim_currency.csv.")
         output_block["dim_currency"] = ctdc(process_block['currency'])
     if process_block.get('department') and process_block.get('staff'):
-        logging.info("Creating dim_staff.csv.")
+        logger.info("Creating dim_staff.csv.")
         output_block["dim_staff"] = sdtds(
             process_block['staff'], process_block['department'])
     if process_block.get('design'):
-        logging.info("Creating dim_design.csv.")
+        logger.info("Creating dim_design.csv.")
         output_block["dim_design"] = dtdd(process_block['design'])
     if process_block.get('sales_order'):
-        logging.info("Creating fact_sales_order.csv.")
+        logger.info("Creating fact_sales_order.csv.")
         output_block["fact_sales_order"] = sotfso(process_block['sales_order'])
 
     return output_block
