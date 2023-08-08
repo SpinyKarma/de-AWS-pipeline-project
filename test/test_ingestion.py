@@ -12,7 +12,9 @@ def test_ingestion_bucket_name():
     """
     prefix = 'terrific-totes-ingestion-bucket'
     boto3.client(
-        "s3", region_name="us-east-1").create_bucket(Bucket=f'{prefix}12534562576864534')
+        "s3", region_name="us-east-1").create_bucket(
+        Bucket=f'{prefix}12534562576864534'
+    )
 
     name = i.get_ingestion_bucket_name()
     assert prefix in name
