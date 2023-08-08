@@ -6,6 +6,9 @@ import csv
 from datetime import datetime as dt
 # from pprint import pprint
 
+logger = logging.getLogger('MyLogger')
+logger.setLevel(logging.INFO)
+
 
 def ingestion_lambda_handler(event, context):
     ''' Will query the ingestion database at regular intervals and save the
@@ -29,12 +32,12 @@ def ingestion_lambda_handler(event, context):
 
         # The name of th s3 bucket that the csvs will be saved to
         bucket_name = get_ingestion_bucket_name()
-        logging.info(f"Ingestion bucket established as {bucket_name}.")
+        logger.info(f"Ingestion bucket established as {bucket_name}.")
 
         # Uses the timestamp prefixes in s3 to determine when the most recent
         # ingestion was
         last = get_last_ingestion_timestamp(bucket_name)
-        logging.info(
+        logger.info(
             f"Most recent timestamp saved to bucket is {last.isoformat()}"
         )
 
@@ -47,21 +50,21 @@ def ingestion_lambda_handler(event, context):
         csv_to_s3(bucket_name, csvs_to_update)
 
     except TableIngestionError as error:
-        logging.error(f'Table Ingestion Error: {error.message}')
+        logger.error(f'Table Ingestion Error: {error.message}')
         raise error
 
     except InvalidCredentialsError as error:
-        logging.error(f'Invalid Credentials Error: {error}')
+        logger.error(f'Invalid Credentials Error: {error}')
         raise error
 
     except NonTimestampedCSVError as error:
         err_str = 'A CSV is in the bucket without a timestamp, '
         err_str += f'remove all non-timestamped CSVs: {error}'
-        logging.error(err_str)
+        logger.error(err_str)
         raise error
 
     except Exception as error:
-        logging.error(f'An unexpected error occured: {error}')
+        logger.error(f'An unexpected error occured: {error}')
         raise error
 
 
@@ -223,11 +226,11 @@ def extract_table_to_csv(table_list, last_timestamp):
             except Exception:
                 raise TableIngestionError(f"Error querying {table_name} table")
             if result == []:
-                logging.info(
+                logger.info(
                     f"No new data in {table_name} since last ingestion."
                 )
             else:
-                logging.info(f"Compiling new data from {table_name} to csv.")
+                logger.info(f"Compiling new data from {table_name} to csv.")
             column_names = [column['name'] for column in db.columns]
             rows = [dict(zip(column_names, row)) for row in result]
             csv_builder = CsvBuilder()
@@ -261,7 +264,7 @@ def csv_to_s3(Bucket, updated_table_list):
     s3_client = boto3.client("s3")
     for table in updated_table_list.keys():
         key = f'{current_timestamp.isoformat()}/{table}.csv'
-        logging.info(f'Writing "{key}" to bucket.')
+        logger.info(f'Writing "{key}" to bucket.')
         output_csv = updated_table_list[table]
         s3_client.put_object(
             Body=output_csv,
