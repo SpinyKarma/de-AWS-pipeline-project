@@ -25,6 +25,14 @@ def generate_csv_string(timestamp=current_timestamp):
 
 @mock_s3
 def test_returns_1970_1_1_when_no_objects_in_bucket():
+    '''
+        Test whether the function 'get_last_ingestion_timestamp'
+        returns January 1, 1970, when there are no objects in the S3 bucket.
+        The purpose of this test is to verify that the function
+        returns the correct timestamp when there are no objects
+        in the S3 bucket.
+    '''
+
     # Create s3 bucket
     s3_client = boto3.client('s3', region_name='us-east-1')
     s3_client.create_bucket(Bucket="test")
@@ -34,6 +42,14 @@ def test_returns_1970_1_1_when_no_objects_in_bucket():
 
 @mock_s3
 def test_gets_most_recent_timestamp_from_all_file_names():
+    '''
+        Test whether the function 'get_last_ingestion_timestamp'
+        retrieves the most recent timestamp from the available
+        file names in the S3 bucket, to verify that the function
+        retrieves the correct most recent timestamp from the file
+        names in the S3 bucket.
+    '''
+
     # Create s3 bucket
     s3_client = boto3.client('s3', region_name='us-east-1')
     s3_client.create_bucket(Bucket="test")
@@ -72,6 +88,13 @@ def test_gets_most_recent_timestamp_from_all_file_names():
 
 @mock_s3
 def test_raises_NonTimeStampedCSVError_when_file_without_timestamp_exists():
+    '''
+        Test whether the function 'extract_table_to_csv' correctly
+        concatenates the query result to a CSV string, to verify that
+        the function correctly concatenates the query result to a CSV
+        string when extracting data from a table.
+    '''
+
     # Create s3 bucket
     s3_client = boto3.client('s3', region_name='us-east-1')
     s3_client.create_bucket(Bucket="test")
@@ -87,6 +110,13 @@ def test_raises_NonTimeStampedCSVError_when_file_without_timestamp_exists():
 
 @patch('src.lambda_ingestion.ingestion_lambda.connect')
 def test_extract_table_to_csv_concats_query_result_to_csv(mock_connection):
+    '''
+        Test whether the function 'extract_table_to_csv' returns an
+        empty dictionary when there is no return from the SQL query,
+        to verify that the function handles cases where there is
+        no return from the SQL query by returning an empty dictionary.
+    '''
+
     mock_db = Mock()
     mock_connection.return_value.__enter__.return_value = mock_db
     mock_db.run.return_value = [
@@ -110,6 +140,13 @@ def test_extract_table_to_csv_concats_query_result_to_csv(mock_connection):
 @mock_s3
 @patch('src.lambda_ingestion.ingestion_lambda.connect')
 def test_return_empty_dict_when_no_return_from_SQL(mock_connection):
+    '''
+        Test whether the function 'extract_table_to_csv' returns an empty
+        dictionary when there is no return from the SQL query, to verify
+        that the function handles cases where there is no return from the
+        SQL query by returning an empty dictionary.
+    '''
+
     mock_db = Mock()
     mock_connection.return_value.__enter__.return_value = mock_db
     new_timestamp = dt.now()
@@ -122,6 +159,11 @@ def test_return_empty_dict_when_no_return_from_SQL(mock_connection):
 
 @mock_s3
 def test_adds_new_csv_to_s3_when_passed_new_data():
+    '''
+        Test whether the function 'csv_to_s3' adds a new CSV to the S3
+        bucket when new data is provided.
+    '''
+
     fake_csv = generate_csv_string()
     s3_client = boto3.client('s3', region_name='us-east-1')
     s3_client.create_bucket(Bucket='test')
