@@ -144,7 +144,7 @@ resource "aws_lambda_permission" "transformation_lambda_event" {
 
 
 resource "aws_cloudwatch_log_metric_filter" "transformation_missing_bucket_error_metric" {
-  name           = "metric_name"
+  name           = "transformation_missing_bucket_error_metric"
   pattern        = "Missing Bucket Error"
   log_group_name = aws_cloudwatch_log_group.transformation_log_group.name
 
@@ -156,11 +156,11 @@ resource "aws_cloudwatch_log_metric_filter" "transformation_missing_bucket_error
 }
 
 resource "aws_cloudwatch_metric_alarm" "transformation_missing_bucket_error_alarm" {
-  alarm_name          = "missing_bucket_error_alarm"
+  alarm_name          = "transformation_missing_bucket_error_alarm"
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = 1
-  metric_name         = "missing_bucket_metric"
-  namespace           = "missing_bucket_metric"
+  metric_name         = aws_cloudwatch_log_metric_filter.transformation_missing_bucket_error_metric.metric_transformation[0].name
+  namespace           = aws_cloudwatch_log_metric_filter.transformation_missing_bucket_error_metric.metric_transformation[0].namespace
   period              = 60
   statistic           = "Sum"
   threshold           = "1"

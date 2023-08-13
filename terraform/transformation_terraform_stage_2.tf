@@ -158,8 +158,8 @@ resource "aws_lambda_permission" "transformation_stage_2_lambda_event" {
 #   alarm_name          = "alarm_name"
 #   comparison_operator = "GreaterThanOrEqualToThreshold"
 #   evaluation_periods  = 1
-#   metric_name         = aws_cloudwatch_log_metric_filter.metric_label.metric_transformation_stage_2[0].name
-#   namespace           = aws_cloudwatch_log_metric_filter.metric_label.metric_transformation_stage_2[0].namespace
+#   metric_name         = aws_cloudwatch_log_metric_filter.metric_label.metric_transformation[0].name
+#   namespace           = aws_cloudwatch_log_metric_filter.metric_label.metric_transformation[0].namespace
 #   period              = 60
 #   statistic           = "Sum"
 #   threshold           = "1"

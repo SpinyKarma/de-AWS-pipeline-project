@@ -216,7 +216,7 @@ resource "aws_cloudwatch_metric_alarm" "invalid_credentials_error_alarm" {
 }
 
 resource "aws_cloudwatch_log_metric_filter" "no_timestamp_error_metric" {
-  name           = "no_timestamp_error"
+  name           = "no_timestamp_error_metric"
   pattern        = "NonTimestampedCSVError"
   log_group_name = aws_cloudwatch_log_group.ingestion_log_group.name
 
@@ -228,7 +228,7 @@ resource "aws_cloudwatch_log_metric_filter" "no_timestamp_error_metric" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "no_timestamp_error_alarm" {
-  alarm_name          = "no_timestamp_Error_alarm"
+  alarm_name          = "no_timestamp_error_alarm"
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = 1
   metric_name         = aws_cloudwatch_log_metric_filter.no_timestamp_error_metric.metric_transformation[0].name
@@ -247,7 +247,7 @@ resource "aws_cloudwatch_metric_alarm" "no_timestamp_error_alarm" {
 
 
 resource "aws_cloudwatch_log_metric_filter" "exception_error_metric" {
-  name           = "exception_error"
+  name           = "exception_error_metric"
   pattern        = "Exception"
   log_group_name = aws_cloudwatch_log_group.ingestion_log_group.name
 
@@ -259,7 +259,7 @@ resource "aws_cloudwatch_log_metric_filter" "exception_error_metric" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "exception_error_alarm" {
-  alarm_name          = "exception_Error_alarm"
+  alarm_name          = "exception_error_alarm"
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = 1
   metric_name         = aws_cloudwatch_log_metric_filter.exception_error_metric.metric_transformation[0].name
