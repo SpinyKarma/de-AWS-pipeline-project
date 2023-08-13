@@ -149,7 +149,7 @@ resource "aws_lambda_permission" "loading_lambda_event" {
 
 
 resource "aws_cloudwatch_log_metric_filter" "loading_missing_bucket_error_metric" {
-  name           = "metric_name"
+  name           = "loading_missing_bucket_error_metric"
   pattern        = "Missing Bucket Error"
   log_group_name = aws_cloudwatch_log_group.loading_log_group.name
 
@@ -161,11 +161,11 @@ resource "aws_cloudwatch_log_metric_filter" "loading_missing_bucket_error_metric
 }
 
 resource "aws_cloudwatch_metric_alarm" "loading_missing_bucket_error_alarm" {
-  alarm_name          = "missing_bucket_error_alarm"
+  alarm_name          = "loading_missing_bucket_error_alarm"
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = 1
-  metric_name         = "missing_bucket_metric"
-  namespace           = "missing_bucket_metric"
+  metric_name         = aws_cloudwatch_log_metric_filter.loading_missing_bucket_error_metric.metric_transformation[0].name
+  namespace           = aws_cloudwatch_log_metric_filter.loading_missing_bucket_error_metric.metric_transformation[0].namespace
   period              = 60
   statistic           = "Sum"
   threshold           = "1"
